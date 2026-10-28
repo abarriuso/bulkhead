@@ -571,8 +571,11 @@ Ok "Docker instalado"
 Paso "2/4  Comprobando Docker Desktop"
 $osType = $null | docker info --format "{{.OSType}}" 2> $null
 if ($LASTEXITCODE -ne 0) {
-    $exe = Join-Path $env:ProgramFiles "Docker\Docker\Docker Desktop.exe"
-    if (Test-Path $exe) {
+    # Instalación para todos los usuarios o solo para el actual.
+    $exe = @((Join-Path $env:ProgramFiles "Docker\Docker\Docker Desktop.exe"),
+             (Join-Path $env:LOCALAPPDATA "Programs\DockerDesktop\Docker Desktop.exe")) |
+        Where-Object { Test-Path $_ } | Select-Object -First 1
+    if ($exe) {
         Nota "Docker Desktop no está abierto. Abriéndolo..."
         Nota "La primera vez puede tardar un par de minutos."
         Start-Process $exe
