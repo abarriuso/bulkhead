@@ -154,18 +154,18 @@ jobs:
           docker exec -u node $general sh -c 'echo x > /workspace/marca && echo x > /home/node/marca'
           ! docker exec -u node $prueba test -e /workspace/marca || exit 1
           ! docker exec -u node $prueba test -e /home/node/marca || exit 1
-          # Copiar de otro proyecto (como iniciar.ps1): solo las claves de API de OpenCode y,
-          # si se pide, GitHub. Ni el login de Claude, ni ajustes, ni entradas peligrosas.
+          # Copiar de otro proyecto (como iniciar.ps1): solo la conexión con GitHub. Ni el
+          # login de Claude, ni ajustes, ni las claves de otras herramientas.
           docker exec -u node $general sh -c 'mkdir -p ~/.claude ~/.config/gh ~/.local/share/opencode &&
             echo "{}" > ~/.claude/.credentials.json &&
             echo "{\"hooks\":{}}" > ~/.claude/settings.json &&
             echo "github.com: {user: prueba}" > ~/.config/gh/hosts.yml &&
-            echo "{\"a\":{\"type\":\"api\",\"key\":\"k\"},\"https://x\":{\"type\":\"wellknown\",\"key\":\"x\",\"token\":\"t\"}}" > ~/.local/share/opencode/auth.json'
+            echo "{\"a\":{\"type\":\"api\",\"key\":\"k\"}}" > ~/.local/share/opencode/auth.json'
           docker run --rm --network none --entrypoint ia -u node \
             -v entorno-ia_home:/origen:ro -v entorno-ia-prueba_home:/home/node \
-            "$(docker compose config --images | grep -v llama)" importar-sesion /origen --con-github
-          test "$(docker exec -u node $prueba jq -c . /home/node/.local/share/opencode/auth.json)" = '{"a":{"type":"api","key":"k"}}'
+            "$(docker compose config --images | grep -v llama)" importar-sesion /origen
           docker exec -u node $prueba test -e /home/node/.config/gh/hosts.yml
+          ! docker exec -u node $prueba test -e /home/node/.local/share/opencode/auth.json || exit 1
           ! docker exec -u node $prueba test -e /home/node/.claude/.credentials.json || exit 1
           ! docker exec -u node $prueba test -e /home/node/.claude/settings.json || exit 1
           # Un servidor de desarrollo se abre desde el PC, pero no desde otro proyecto.

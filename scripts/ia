@@ -7,7 +7,7 @@ SECRETO=/run/secrets/anthropic_api_key
 # la usan; aquí se lee y se pasa únicamente a esa herramienta, ya como usuario node.
 if [ "$(id -u)" = 0 ]; then
   case "${1:-}" in
-    3|opencode|6|claude-api)
+    5|claude-api)
       if [ -s "$SECRETO" ]; then ANTHROPIC_API_KEY="$(cat "$SECRETO")"; export ANTHROPIC_API_KEY; fi ;;
   esac
   exec setpriv --reuid=node --regid=node --init-groups -- "$0" "$@"
@@ -47,7 +47,7 @@ need_api_key() {
   [ -n "${ANTHROPIC_API_KEY:-}" ] && return
   if [ -s "$SECRETO" ]; then
     echo "La clave de API está configurada, pero por seguridad solo se entrega a las"
-    echo "opciones que la usan. Ábrela desde el menú de iniciar.cmd (opción 8)."
+    echo "opciones que la usan. Ábrela desde el menú de iniciar.cmd (opción 7)."
   else
     echo "Falta ANTHROPIC_API_KEY"
     echo "  → Añádela en el archivo .env y vuelve a ejecutar iniciar.cmd"
@@ -92,19 +92,6 @@ claude_autonomo() {
 claude_api() {
   need_api_key
   exec env -u ANTHROPIC_BASE_URL -u ANTHROPIC_AUTH_TOKEN claude "$@"
-}
-
-opencode_libre() {
-  if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -s "$SECRETO" ]; then
-    echo "OpenCode se abre sin tu clave de Anthropic: por seguridad solo la recibe si lo"
-    echo "abres desde el menú de iniciar.cmd (opción 3). Los demás proveedores funcionan igual."
-    echo
-  fi
-  write_opencode_config
-  if [ -n "${ANTHROPIC_API_KEY:-}" ] && [ -n "${CLAUDE_MODEL:-}" ]; then
-    exec opencode -m "anthropic/$CLAUDE_MODEL" "$@"
-  fi
-  exec opencode "$@"
 }
 
 opencode_local() {
@@ -205,36 +192,19 @@ preparar() {
   fi
 }
 
-# Copia de otro proyecto lo que se puede compartir sin riesgo: las claves de API de
-# OpenCode y, solo si se pide (--con-github), la conexión con GitHub. El inicio de sesión
-# de Claude no se copia: su token se renueva y la copia dejaría de valer en uno de los
-# dos proyectos. iniciar.ps1 lo ejecuta en un contenedor sin red con la carpeta personal
-# del otro proyecto montada en $1.
+# Copia de otro proyecto lo único que se comparte: la conexión con GitHub. El inicio de
+# sesión de Claude no se copia: su token se renueva y la copia dejaría de valer en uno
+# de los dos proyectos. iniciar.ps1 lo ejecuta en un contenedor sin red con la carpeta
+# personal del otro proyecto montada en $1.
 importar_sesion() {
-  local origen="${1:?}" con_github="${2:-}" src dst
+  local origen="${1:?}" src
   umask 077
-  # OpenCode: solo entradas de tipo "api" y solo su clave. Otros tipos se renuevan o
-  # cargan configuración remota (que podría ejecutar código en este proyecto).
-  src="$origen/.local/share/opencode/auth.json"
-  dst="$HOME/.local/share/opencode/auth.json"
+  src="$origen/.config/gh/hosts.yml"
   if [ -f "$src" ] && [ ! -L "$src" ]; then
-    mkdir -p "$(dirname "$dst")"
-    if jq -e 'with_entries(select(.value.type == "api") | .value |= {type, key}) | select(length > 0)' \
-        "$src" > "$dst.nuevo" 2>/dev/null; then
-      if [ -f "$dst" ]; then jq -s '.[0] * .[1]' "$dst" "$dst.nuevo" > "$dst.mezcla" && mv "$dst.mezcla" "$dst"
-      else mv "$dst.nuevo" "$dst"; fi
-      echo "  copiado: claves de API de OpenCode"
-    fi
-    rm -f "$dst.nuevo"
-  fi
-  if [ "$con_github" = "--con-github" ]; then
-    src="$origen/.config/gh/hosts.yml"
-    if [ -f "$src" ] && [ ! -L "$src" ]; then
-      mkdir -p "$HOME/.config/gh"
-      install -m 600 "$src" "$HOME/.config/gh/hosts.yml"
-      gh auth setup-git -h github.com >/dev/null 2>&1 || true
-      echo "  copiado: conexión con GitHub"
-    fi
+    mkdir -p "$HOME/.config/gh"
+    install -m 600 "$src" "$HOME/.config/gh/hosts.yml"
+    gh auth setup-git -h github.com >/dev/null 2>&1 || true
+    echo "  copiado: conexión con GitHub"
   fi
 }
 
@@ -266,7 +236,6 @@ Uso: ia [comando] [argumentos para la herramienta]
   ia               menú
   ia claude        Claude Code con tu cuenta de Claude
   ia auto          Claude Code autónomo (no pide permiso; solo con proyectos de confianza)
-  ia opencode      OpenCode: eliges proveedor y modelo dentro (/models, /connect)
   ia local         OpenCode con el modelo local (LM Studio o llama.cpp)
   ia claude-api    Claude Code con ANTHROPIC_API_KEY
   ia modelos       lista los modelos locales
@@ -292,13 +261,12 @@ if [ -z "$opcion" ]; then
   TRABAJAR CON IA
     1) Claude Code             con tu cuenta de Claude
     2) Claude Code autónomo    no pide permiso; solo con proyectos de confianza
-    3) OpenCode                eliges proveedor y modelo dentro
-    4) OpenCode local          con el modelo de LM Studio o llama.cpp
+    3) OpenCode local          con el modelo de LM Studio o llama.cpp
 
   OTROS
-    5) Conectar GitHub
-    6) Claude Code con clave de API
-    7) Ver modelos locales
+    4) Conectar GitHub
+    5) Claude Code con clave de API
+    6) Ver modelos locales
     0) Salir
 
 EOF
@@ -308,11 +276,10 @@ fi
 case "$opcion" in
   1|claude)       claude_suscripcion "$@" ;;
   2|auto)         claude_autonomo "$@" ;;
-  3|opencode)     opencode_libre "$@" ;;
-  4|local)        opencode_local "$@" ;;
-  5|github)       github "$@" ;;
-  6|claude-api)   claude_api "$@" ;;
-  7|modelos)      modelos ;;
+  3|local|opencode) opencode_local "$@" ;;
+  4|github)       github "$@" ;;
+  5|claude-api)   claude_api "$@" ;;
+  6|modelos)      modelos ;;
   preparar)       preparar "$@" ;;
   importar-sesion) importar_sesion "$@" ;;
   pendiente)      pendiente ;;

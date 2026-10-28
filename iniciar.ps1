@@ -8,7 +8,7 @@ $Profiles = if ($LlamaCpp) { @("--profile", "llamacpp") } else { @() }
 $utf8 = New-Object Text.UTF8Encoding $false
 
 # Debe coincidir con LABEL entorno-ia.version del Dockerfile.
-$VersionImagen = "4"
+$VersionImagen = "5"
 # Cada proyecto es el proyecto de Compose "entorno-ia-<nombre>"; "general" es "entorno-ia".
 $Prefijo = "entorno-ia"
 $NombreValido = '^[a-z][a-z0-9-]{0,29}$'
@@ -196,8 +196,8 @@ function Encender($p) {
     return $ok
 }
 
-# -ComoRoot solo para "ia claude-api" e "ia opencode": la clave de API solo la puede leer
-# root, e "ia" se la pasa a esa herramienta y baja enseguida al usuario node.
+# -ComoRoot solo para "ia claude-api": la clave de API solo la puede leer root, e "ia"
+# se la pasa a Claude Code y baja enseguida al usuario node.
 function Abrir($p, $titulo, [string[]]$comando, [switch]$ComoRoot) {
     $usuario = if ($ComoRoot) { "root" } else { "node" }
     $exec = @("exec", "-it", "-u", $usuario, "-w", "/workspace", (Contenedor $p)) + $comando
@@ -269,7 +269,7 @@ function MenuProyecto($p) {
         Write-Host ("http://localhost:{0}   :{1}   :{2}" -f $pu[0], $pu[1], $pu[2])
         Nota "        (dentro del proyecto son los puertos 3000, 5173 y 8080)"
         Write-Host "   GitHub          " -ForegroundColor DarkGray -NoNewline
-        if ($gh) { Write-Host "conectado como $gh" -ForegroundColor Green } else { Write-Host "sin conectar (opción 7)" -ForegroundColor DarkGray }
+        if ($gh) { Write-Host "conectado como $gh" -ForegroundColor Green } else { Write-Host "sin conectar (opción 6)" -ForegroundColor DarkGray }
         Write-Host "   Modelo local    " -ForegroundColor DarkGray -NoNewline
         Write-Host $modelo -ForegroundColor $(if ($hayModelo) { "Green" } else { "DarkGray" })
         Write-Host "   API Anthropic   " -ForegroundColor DarkGray -NoNewline
@@ -278,15 +278,14 @@ function MenuProyecto($p) {
         Seccion "TRABAJAR CON IA"
         Opcion 1 "Claude Code"          "Con tu cuenta de Claude (Pro, Max o Team)"
         Opcion 2 "Claude Code autónomo" "No pide permiso. Solo con proyectos y repositorios de confianza"
-        Opcion 3 "OpenCode"             "Eliges proveedor y modelo dentro, también gratuitos"
-        Opcion 4 "OpenCode local"       "Con tu modelo de LM Studio o llama.cpp. Gratis y privado"
+        Opcion 3 "OpenCode local"       "Con tu modelo de LM Studio o llama.cpp. Gratis; el modelo corre en tu PC"
         Seccion "HERRAMIENTAS"
-        Opcion 5 "Terminal"             "Línea de comandos del proyecto: git, gh, npm, python..."
-        Opcion 6 "VS Code"              "Abre el proyecto en el editor"
-        Opcion 7 "Conectar GitHub"      "Para descargar repositorios privados y subir cambios"
+        Opcion 4 "Terminal"             "Línea de comandos del proyecto: git, gh, npm, python..."
+        Opcion 5 "VS Code"              "Abre el proyecto en el editor"
+        Opcion 6 "Conectar GitHub"      "Para descargar repositorios privados y subir cambios"
         Seccion "AVANZADO"
-        Opcion 8 "Claude Code con API"  "Pago por uso. Necesita ANTHROPIC_API_KEY en .env"
-        Opcion 9 "Modelos locales"      "Lista los modelos de LM Studio o llama.cpp"
+        Opcion 7 "Claude Code con API"  "Pago por uso. Necesita ANTHROPIC_API_KEY en .env"
+        Opcion 8 "Modelos locales"      "Lista los modelos de LM Studio o llama.cpp"
         Write-Host ""
         Opcion 0 "Volver a proyectos"   "El proyecto sigue encendido"
         Write-Host ""
@@ -299,44 +298,41 @@ function MenuProyecto($p) {
             ""  { }
             "1" { Abrir $p "Claude Code" @("ia", "claude") }
             "2" { Abrir $p "Claude Code autónomo" @("ia", "auto") }
-            "3" { Abrir $p "OpenCode" @("ia", "opencode") -ComoRoot }
-            "4" {
+            "3" {
                 if ($hayModelo) { Abrir $p "OpenCode local" @("ia", "local") }
                 elseif ($LlamaCpp) { Esperar-Tecla "El modelo local aún no está listo" "llama.cpp puede estar descargando el modelo. Míralo con: docker compose logs -f llamacpp" }
-                else { Esperar-Tecla "No hay modelo local" @("Abre LM Studio, carga un modelo y pulsa Developer -> Start Server.", "Sin modelo local, usa la opción 3: OpenCode con modelos en la nube, algunos gratuitos.") }
+                else { Esperar-Tecla "No hay modelo local" "Abre LM Studio, carga un modelo y pulsa Developer -> Start Server." }
             }
-            "5" { Abrir $p "Terminal" @("bash") }
-            "6" { AbrirVSCode $p }
-            "7" {
+            "4" { Abrir $p "Terminal" @("bash") }
+            "5" { AbrirVSCode $p }
+            "6" {
                 Write-Host ""
                 [void](Aqui $p @("ia", "github"))
                 Leer "   Pulsa Enter para volver al menú" | Out-Null
             }
-            "8" {
+            "7" {
                 if ($hayApi) { Abrir $p "Claude Code (API)" @("ia", "claude-api") -ComoRoot }
                 else { Esperar-Tecla "Falta la clave de API" "Añade ANTHROPIC_API_KEY=tu-clave en el archivo .env de esta carpeta y vuelve a ejecutar iniciar.cmd." }
             }
-            "9" {
+            "8" {
                 Paso "Modelos disponibles"
                 Dock exec -u node $c ia modelos | ForEach-Object { Nota $_ }
                 Write-Host ""
                 Leer "   Pulsa Enter para volver al menú" | Out-Null
             }
             "0" { return }
-            default { Esperar-Tecla "Opción no válida: '$op'" "Escribe un número del 0 al 9 y pulsa Enter." }
+            default { Esperar-Tecla "Opción no válida: '$op'" "Escribe un número del 0 al 8 y pulsa Enter." }
         }
     }
 }
 
-# Copia de un proyecto a otro las claves de API de OpenCode y, con -ConGithub, la
-# conexión con GitHub (ver "ia importar-sesion"). Se hace en un contenedor sin red que
-# monta las dos carpetas personales.
-function CopiarSesion($origen, $destino, [switch]$ConGithub) {
+# Copia de un proyecto a otro la conexión con GitHub (ver "ia importar-sesion"). Se hace
+# en un contenedor sin red que monta las dos carpetas personales.
+function CopiarSesion($origen, $destino) {
     $parametros = @("run", "--rm", "--network", "none", "--entrypoint", "ia", "-u", "node",
         "-v", "$(NombreCompose $origen)_home:/origen:ro",
         "-v", "$(NombreCompose $destino)_home:/home/node",
         (Imagen), "importar-sesion", "/origen")
-    if ($ConGithub) { $parametros += "--con-github" }
     $copiado = @(Dock @parametros)
     if ($LASTEXITCODE -ne 0) { Aviso "No se pudo copiar nada del proyecto $origen"; return }
     if ($copiado.Count -eq 0) { Nota "El proyecto $origen no tiene nada que copiar."; return }
@@ -373,22 +369,22 @@ function NuevoProyecto {
 
     if (-not (Encender $nombre)) { Esperar-Tecla "No se pudo crear el proyecto" "Revisa los mensajes de arriba."; return }
 
-    # Cada proyecto tiene su carpeta personal y sus sesiones. Se ofrece copiar de otro las
-    # claves de OpenCode y, aparte y sin marcar, la conexión con GitHub.
+    # Cada proyecto tiene su carpeta personal y sus sesiones. Se ofrece copiar de otro la
+    # conexión con GitHub.
     $otros = @(Proyectos | Where-Object { $_.Nombre -ne $nombre } | ForEach-Object { $_.Nombre })
     if ($otros.Count -gt 0) {
         Write-Host ""
         Nota "Este proyecto tiene sus propias sesiones: Claude Code te pedirá iniciar sesión"
-        Nota "la primera vez. Puedes copiar de otro proyecto de confianza sus claves de"
-        Nota "OpenCode y, si quieres, su conexión con GitHub."
+        Nota "la primera vez. Puedes copiar de otro proyecto de confianza su conexión con"
+        Nota "GitHub: este tendrá acceso a los mismos repositorios."
         $origen = ""
         if ($otros.Count -eq 1) {
-            $r = Leer "   ¿Copiar del proyecto '$($otros[0])'? (s/N)"
+            $r = Leer "   ¿Copiar la conexión con GitHub del proyecto '$($otros[0])'? (s/N)"
             if ($null -eq $r) { exit 0 }
             if ($r.Trim() -match '^[sS]') { $origen = $otros[0] }
         } else {
             Nota "Proyectos: $($otros -join ', ')"
-            $origen = Leer "   ¿De cuál? (nombre, o Enter para no copiar)"
+            $origen = Leer "   ¿De cuál copiar la conexión con GitHub? (nombre, o Enter para no copiar)"
             if ($null -eq $origen) { exit 0 }
             $origen = $origen.Trim().ToLower()
             if ($origen -and $otros -notcontains $origen) {
@@ -396,13 +392,7 @@ function NuevoProyecto {
                 $origen = ""
             }
         }
-        if ($origen) {
-            Nota "Con la conexión con GitHub, este proyecto tendrá acceso a los mismos"
-            Nota "repositorios que '$origen'."
-            $r = Leer "   ¿Copiar también GitHub? (s/N)"
-            if ($null -eq $r) { exit 0 }
-            CopiarSesion $origen $nombre -ConGithub:($r.Trim() -match '^[sS]')
-        }
+        if ($origen) { CopiarSesion $origen $nombre }
         Write-Host ""
     }
     if (-not (Aqui $nombre @("ia", "preparar", $url)) -and $url) {

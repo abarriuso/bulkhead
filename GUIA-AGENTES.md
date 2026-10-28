@@ -67,7 +67,7 @@ OpenCode usa `AGENTS.md` y, si no existe, también lee `CLAUDE.md`.
 
 - **Claude Code (opción 1):** pide permiso antes de editar archivos o ejecutar comandos. Ideal para empezar y entender qué hace.
 - **Claude Code autónomo (opción 2):** no pide permiso. Es como trabaja mucha gente con tareas largas, pero **solo con proyectos y repositorios de confianza**. El aislamiento protege tu ordenador, pero no impide que unas instrucciones escondidas en un archivo, un issue o una web (*prompt injection*) engañen al agente para que borre cosas o envíe tu código a GitHub o a otra API permitida.
-- **OpenCode (opciones 3 y 4):** pide permiso antes de editar archivos o ejecutar comandos, como Claude Code. Dentro puedes activar la aprobación automática; aplica el mismo criterio que con el modo autónomo.
+- **OpenCode local (opción 3):** pide permiso antes de editar archivos o ejecutar comandos, como Claude Code. Dentro puedes activar la aprobación automática; aplica el mismo criterio que con el modo autónomo.
 
 Aunque uses el modo autónomo, **revisa siempre el resultado** antes de guardarlo y subirlo.
 
@@ -80,7 +80,7 @@ Git guarda versiones de tu proyecto. Con agentes es imprescindible porque permit
 - **Antes de una tarea grande:** "haz commit de lo que hay".
 - **Para probar algo arriesgado:** "crea una rama nueva para esto".
 - **Si algo sale mal:** "deshaz los cambios desde el último commit".
-- **Para guardarlo de verdad:** conecta GitHub (opción 7) y pide "sube los cambios a GitHub". Lo que solo está en el contenedor se pierde si borras el proyecto.
+- **Para guardarlo de verdad:** conecta GitHub (opción 6) y pide "sube los cambios a GitHub". Lo que solo está en el contenedor se pierde si borras el proyecto.
 
 ## 7. Qué agente y qué modelo usar
 
@@ -88,8 +88,7 @@ Git guarda versiones de tu proyecto. Con agentes es imprescindible porque permit
 |---|---|---|
 | Claude Code con tu cuenta | Lo más capaz y lo más usado. Para casi todo | Incluido en Claude Pro, Max o Team |
 | Claude Code con API | Uso puntual o automatizado, sin suscripción | Pago por uso |
-| OpenCode | Probar otros modelos o proveedores (OpenAI, Gemini, OpenRouter…), o modelos gratuitos | Depende del proveedor; algunos son gratis |
-| OpenCode local | Privacidad total o sin internet. Tareas sencillas | Gratis (usa tu tarjeta gráfica) |
+| OpenCode local | Que tus instrucciones no salgan de tu PC. Tareas sencillas | Gratis (usa tu tarjeta gráfica) |
 
 Los modelos locales son bastante menos capaces que los de la nube: úsalos para tareas acotadas y con un `CLAUDE.md` claro.
 

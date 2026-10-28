@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim
 
 # Versión de la imagen. iniciar.ps1 la compara con la suya y, si no coincide,
 # descarga o reconstruye la imagen. Súbela cuando cambie algo de esta imagen.
-LABEL entorno-ia.version="4"
+LABEL entorno-ia.version="5"
 LABEL org.opencontainers.image.source="https://github.com/abarriuso/claude-code-local-llm-docker"
 
 RUN apt-get update \

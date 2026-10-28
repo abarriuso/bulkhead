@@ -15,9 +15,9 @@
 | Espacio libre en disco | 15 GB | 30 GB |
 | Procesador | Con virtualización (casi todos desde 2015) | — |
 | Internet | Necesario | — |
-| Cuenta | Claude **Pro, Max o Team**, o una clave de API de Anthropic | Opcional con OpenCode |
+| Cuenta | Claude **Pro, Max o Team**, o una clave de API de Anthropic | No hace falta con un modelo local |
 
-El plan gratuito de Claude no incluye Claude Code. Sin cuenta de pago se puede usar OpenCode con modelos gratuitos o con un modelo local.
+El plan gratuito de Claude no incluye Claude Code. Sin cuenta de pago se puede usar OpenCode con un modelo local (ver más abajo).
 
 Docker Desktop es gratuito para uso personal, educativo y empresas de menos de 250 empleados y menos de 10 millones de dólares de facturación anual. Por encima, necesita licencia de pago.
 
@@ -79,7 +79,7 @@ Cada proyecto tiene su propio contenedor, con sus archivos separados de los dem�
 
 Cada proyecto tiene su propia sesión: en cada proyecto nuevo, Claude Code pedirá iniciar sesión la primera vez.
 
-**¿Sin cuenta de pago de Claude?** La opción **3** (OpenCode) permite elegir otros proveedores dentro, incluidos modelos gratuitos.
+**¿Sin cuenta de pago de Claude?** Con una tarjeta gráfica NVIDIA puedes usar la opción **3** (OpenCode local): ver [Modelo local con LM Studio](#modelo-local-con-lm-studio).
 
 ### Las siguientes veces
 
@@ -117,7 +117,7 @@ Editar el fichero `.env` de la carpeta (se crea en el primer arranque) y volver 
 
 | Variable | Para qué |
 |---|---|
-| `ANTHROPIC_API_KEY` | Usar Claude con clave de API (opción 8, y Anthropic en OpenCode) |
+| `ANTHROPIC_API_KEY` | Usar Claude Code con clave de API (opción 7) |
 | `GIT_USER_NAME`, `GIT_USER_EMAIL` | Identidad de git dentro del contenedor |
 
 Resto de variables: [manual de uso](MANUAL.md#9-configuración).
@@ -129,7 +129,7 @@ Resto de variables: [manual de uso](MANUAL.md#9-configuración).
 3. *Discover* → descargar un modelo ([modelos recomendados](MANUAL.md#modelos-recomendados)).
 4. Cargarlo con contexto **32768** y *GPU offload* al máximo.
 5. *Developer* → **Start Server**.
-6. Doble clic en `iniciar.cmd`. En el menú del proyecto, opción **4** (OpenCode local).
+6. Doble clic en `iniciar.cmd`. En el menú del proyecto, opción **3** (OpenCode local).
 
 ### Modelo local con llama.cpp (sin LM Studio)
 
@@ -143,7 +143,7 @@ Resto de variables: [manual de uso](MANUAL.md#9-configuración).
    ```powershell
    .\iniciar.cmd -LlamaCpp
    ```
-5. El primer arranque descarga el modelo. Ver el progreso con `docker compose logs -f llamacpp`. En el menú del proyecto, opción **4**.
+5. El primer arranque descarga el modelo. Ver el progreso con `docker compose logs -f llamacpp`. En el menú del proyecto, opción **3**.
 
 ### Problemas de instalación
 

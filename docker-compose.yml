@@ -19,7 +19,6 @@ services:
       PROYECTO: ${PROYECTO:-general}
       LOCAL_URL: ${LOCAL_URL:-http://host.docker.internal:1234}
       LOCAL_MODEL: ${LOCAL_MODEL:-}
-      CLAUDE_MODEL: ${CLAUDE_MODEL:-}
       GIT_USER_NAME: ${GIT_USER_NAME:-}
       GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
       FIREWALL: ${FIREWALL:-on}
