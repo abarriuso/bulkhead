@@ -47,7 +47,7 @@ jobs:
       - name: docker compose config
         env:
           ANTHROPIC_API_KEY: ""
-        run: docker compose --profile llamacpp config -q
+        run: docker compose --profile llamacpp --profile openwebui config -q
 
   build-and-test:
     runs-on: ubuntu-latest

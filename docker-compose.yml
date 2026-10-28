@@ -72,6 +72,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
       interval: 30s
       start_period: 10m
+    networks: [default, chat]
     volumes:
       - models:/models
     deploy:
@@ -82,6 +83,33 @@ services:
               count: all
               capabilities: [gpu]
 
+  # Chat con el modelo local en el navegador. Es una alternativa a OpenCode local, no un
+  # agente: no ve los proyectos. Sin descargas, sin comprobar versiones y sin compartir
+  # chats; la telemetría ya viene apagada en la imagen. No pasa por el cortafuegos de los
+  # proyectos, pero va en su propia red: solo alcanza el modelo, no los proyectos.
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:v0.12.4
+    profiles: ["openwebui"]
+    restart: unless-stopped
+    labels:
+      entorno-ia: openwebui
+    environment:
+      OPENAI_API_BASE_URL: ${LOCAL_URL:-http://host.docker.internal:1234}/v1
+      OPENAI_API_KEY: local
+      ENABLE_OLLAMA_API: "false"
+      OFFLINE_MODE: "true"
+      ENABLE_COMMUNITY_SHARING: "false"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks: [chat]
+    volumes:
+      - openwebui:/app/backend/data
+    ports:
+      - "127.0.0.1:3100:8080"
+
 secrets:
   anthropic_api_key:
     environment: ANTHROPIC_API_KEY
@@ -89,9 +117,13 @@ secrets:
 networks:
   default:
     name: entorno-ia_default
+  chat:
+    name: entorno-ia_chat
 
 volumes:
   home:
   workspace:
   models:
     name: entorno-ia_models
+  openwebui:
+    name: entorno-ia_openwebui

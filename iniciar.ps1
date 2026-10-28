@@ -446,7 +446,26 @@ function BorrarProyecto($lista) {
 }
 
 function ContenedoresEncendidos {
-    return @(Dock ps --format "{{.ID}} {{.Names}}" | Where-Object { $_ -match " $Prefijo(-[a-z0-9-]+)?-(workspace|llamacpp)-\d+$" } | ForEach-Object { ($_ -split " ")[0] })
+    return @(Dock ps --format "{{.ID}} {{.Names}}" | Where-Object { $_ -match " $Prefijo(-[a-z0-9-]+)?-(workspace|llamacpp|openwebui)-\d+$" } | ForEach-Object { ($_ -split " ")[0] })
+}
+
+# Open WebUI: chat con el modelo local en el navegador. Uno para todos los proyectos.
+function AbrirOpenWebUI {
+    Banner
+    Paso "OPEN WEBUI"
+    Nota "Chat con tu modelo local en el navegador. No es un agente: no ve tus proyectos."
+    Nota "La primera vez descarga Open WebUI (varios GB) y pide crear una cuenta, que se"
+    Nota "guarda solo en este PC."
+    Write-Host ""
+    $ok = Esperar "Encendiendo Open WebUI" (@("compose") + $Profiles + @("--profile", "openwebui", "up", "-d", "--wait", "openwebui"))
+    if (-not $ok) {
+        Esperar-Tecla "No se pudo encender Open WebUI" @("Causa habitual: el puerto 3100 está ocupado por otro programa.", "Registro completo: docker compose logs openwebui")
+        return
+    }
+    Start-Process "http://localhost:3100"
+    Ok "Abierto en el navegador: http://localhost:3100"
+    if (-not $LlamaCpp -and -not (LMStudioActivo)) { Aviso "LM Studio no responde: Open WebUI no verá ningún modelo hasta que lo arranques" }
+    Start-Sleep -Seconds 3
 }
 
 function PararTodo {
@@ -519,6 +538,7 @@ function MenuProyectos {
         Write-Host ""
         Opcion "N" "Nuevo proyecto"       "Vacío o a partir de un repositorio de GitHub"
         Opcion "B" "Borrar un proyecto"   "Avisa si hay cambios sin subir a GitHub"
+        Opcion "W" "Open WebUI"           "Chat con tu modelo local en el navegador"
         Opcion "A" "Actualizar"           "Últimas versiones de Claude Code y OpenCode"
         Opcion "P" "Apagar todo"          "Apaga todos los proyectos. No se pierde nada"
         Opcion "0" "Salir"                "Los proyectos encendidos siguen funcionando"
@@ -535,6 +555,7 @@ function MenuProyectos {
             ""  { }
             "N" { NuevoProyecto }
             "B" { if ($lista.Count -gt 0) { BorrarProyecto $lista } else { Esperar-Tecla "No hay proyectos que borrar" "" } }
+            "W" { AbrirOpenWebUI }
             "A" { Actualizar }
             "P" { PararTodo; return }
             "0" {
@@ -653,7 +674,7 @@ if ($LlamaCpp) {
     $null | docker compose --profile llamacpp stop llamacpp *> $null
 } else {
     if (LMStudioActivo) { Ok "Modelo local: LM Studio" }
-    else { Nota "LM Studio no está abierto: no pasa nada, solo hace falta para 'OpenCode local'." }
+    else { Nota "LM Studio no está abierto: no pasa nada, solo hace falta para OpenCode local y Open WebUI." }
     $null | docker compose --profile llamacpp stop llamacpp *> $null
 }
 

@@ -69,6 +69,7 @@ La pantalla principal de `iniciar.cmd`:
 
      N  Nuevo proyecto          Vacío o a partir de un repositorio de GitHub
      B  Borrar un proyecto      Avisa si hay cambios sin subir a GitHub
+     W  Open WebUI              Chat con tu modelo local en el navegador
      A  Actualizar              Últimas versiones de Claude Code y OpenCode
      P  Apagar todo             Apaga todos los proyectos. No se pierde nada
      0  Salir                   Los proyectos encendidos siguen funcionando
@@ -163,6 +164,16 @@ npm run dev -- --host 0.0.0.0 --port 5173     # en el proyecto 1 se abre en http
    ```powershell
    docker compose logs -f llamacpp
    ```
+
+### Open WebUI: chat en el navegador
+
+Una alternativa a OpenCode local para cuando solo quieres hablar con el modelo, sin agente: preguntas, textos, resúmenes o documentos que subas tú. No ve los archivos de tus proyectos.
+
+1. Tener el modelo local en marcha (LM Studio o llama.cpp).
+2. `iniciar.cmd` → **W**. Se abre en el navegador en http://localhost:3100.
+3. La primera vez descarga Open WebUI (varios GB) y pide crear una cuenta. La cuenta y los chats se guardan solo en este PC, en el volumen `entorno-ia_openwebui`.
+
+Viene configurado para no salir a internet por su cuenta: no descarga modelos, no comprueba versiones, no envía telemetría y no comparte chats. Lo que **no** tiene es el cortafuegos de los proyectos: va en su propia red de Docker, que solo llega al modelo local y no a los proyectos, pero esa red sí tiene salida a internet.
 
 ### Ollama u otro servidor
 
