@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim
 
 # Versión de la imagen. iniciar.ps1 la compara con la suya y, si no coincide,
 # descarga o reconstruye la imagen. Súbela cuando cambie algo de esta imagen.
-LABEL bulkhead.version="7"
+LABEL bulkhead.version="8"
 LABEL org.opencontainers.image.source="https://github.com/abarriuso/bulkhead"
 
 RUN apt-get update \
@@ -42,13 +42,14 @@ ENV HOME=/home/node \
     OPENCODE_DISABLE_MODELS_FETCH=1 \
     OPENCODE_DISABLE_AUTOUPDATE=1
 
-# Toda la salida a internet pasa por el proxy del cortafuegos (scripts/firewall.sh). Su
-# autoridad de certificados se crea al arrancar el contenedor; pip y Python no usan la
-# del sistema si no se les dice.
+# Toda la salida a internet pasa por el proxy del cortafuegos (scripts/firewall.sh), también
+# el fetch de Node (NODE_USE_ENV_PROXY). Su autoridad de certificados se crea al arrancar
+# el contenedor; pip y Python no usan la del sistema si no se les dice.
 ENV HTTPS_PROXY=http://127.0.0.1:3128 https_proxy=http://127.0.0.1:3128 \
     HTTP_PROXY=http://127.0.0.1:3128 http_proxy=http://127.0.0.1:3128 \
     NO_PROXY=localhost,127.0.0.1,::1,host.docker.internal,llamacpp \
     no_proxy=localhost,127.0.0.1,::1,host.docker.internal,llamacpp \
+    NODE_USE_ENV_PROXY=1 \
     NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/bulkhead-proxy.crt \
     PIP_CERT=/etc/ssl/certs/ca-certificates.crt \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \

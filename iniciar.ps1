@@ -8,7 +8,7 @@ $Profiles = if ($LlamaCpp) { @("--profile", "llamacpp") } else { @() }
 $utf8 = New-Object Text.UTF8Encoding $false
 
 # Debe coincidir con LABEL bulkhead.version del Dockerfile.
-$VersionImagen = "7"
+$VersionImagen = "8"
 # Cada proyecto es el proyecto de Compose "bulkhead-<nombre>"; "general" es "bulkhead".
 $Prefijo = "bulkhead"
 $NombreValido = '^[a-z][a-z0-9-]{0,29}$'

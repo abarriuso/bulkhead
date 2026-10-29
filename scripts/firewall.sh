@@ -26,6 +26,7 @@ DOMAINS=(
   registry.npmjs.org pypi.org files.pythonhosted.org
   github.com api.github.com codeload.github.com uploads.github.com .githubusercontent.com
   update.code.visualstudio.com vscode.download.prss.microsoft.com marketplace.visualstudio.com
+  .gallerycdn.vsassets.io .vscode-cdn.net
 )
 # Fastly atiende cualquier web suya aunque la conexión se abra con el nombre de un
 # dominio permitido (basta otra cabecera Host). En estos el proxy descifra la conexión
