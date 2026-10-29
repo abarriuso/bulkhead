@@ -267,7 +267,10 @@ configurar_proxy
 arrancar_proxy
 
 # Comprobaciones, como el usuario de los agentes. Si alguna falla, no arranca nada.
-if como_node curl -s --noproxy '*' --max-time 5 -o /dev/null https://example.com; then
+# Directo a la IP de un dominio permitido (sin DNS, el agente no podría ni buscarla).
+ip_prueba=$(getent ahostsv4 registry.npmjs.org | awk 'NR==1{print $1}' || true)
+if [ -n "$ip_prueba" ] && como_node curl -s --noproxy '*' --max-time 5 -o /dev/null \
+    --resolve "registry.npmjs.org:443:$ip_prueba" https://registry.npmjs.org; then
   echo "[firewall] ERROR: se puede salir sin pasar por el proxy"
   exit 1
 fi
