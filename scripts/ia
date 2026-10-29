@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SECRETO=/run/secrets/anthropic_api_key
-
-# La clave de API solo la puede leer root. iniciar.cmd abre como root las opciones que
-# la usan; aquí se lee y se pasa únicamente a esa herramienta, ya como usuario node.
 if [ "$(id -u)" = 0 ]; then
-  case "${1:-}" in
-    5|claude-api)
-      if [ -s "$SECRETO" ]; then ANTHROPIC_API_KEY="$(cat "$SECRETO")"; export ANTHROPIC_API_KEY; fi ;;
-  esac
   exec setpriv --reuid=node --regid=node --init-groups -- "$0" "$@"
 fi
 
 LOCAL_URL="${LOCAL_URL:-http://host.docker.internal:1234}"
 LOCAL_MODEL="${LOCAL_MODEL:-}"
 PLANTILLAS=/usr/local/share/bulkhead
+# Proxy de Claude Code con API: añade la clave, que los agentes no pueden leer.
+PROXY_API=http://127.0.0.1:3129
+
+# El modelo local va directo, sin pasar por el proxy.
+modelo_host="${LOCAL_URL#*://}"; modelo_host="${modelo_host%%/*}"; modelo_host="${modelo_host%:*}"
+export NO_PROXY="${NO_PROXY:+$NO_PROXY,}$modelo_host"
+export no_proxy="$NO_PROXY"
 
 local_models() { curl -sf --max-time 3 "$LOCAL_URL/v1/models" | jq -r '.data[].id' | grep -viE 'embed' || true; }
 
@@ -41,17 +40,12 @@ need_local_model() {
   fi
 }
 
-api_configurada() { [ -n "${ANTHROPIC_API_KEY:-}" ] || [ -s "$SECRETO" ]; }
+api_configurada() { timeout 2 bash -c "</dev/tcp/127.0.0.1/${PROXY_API##*:}" 2>/dev/null; }
 
 need_api_key() {
-  [ -n "${ANTHROPIC_API_KEY:-}" ] && return
-  if [ -s "$SECRETO" ]; then
-    echo "La clave de API está configurada, pero por seguridad solo se entrega a las"
-    echo "opciones que la usan. Ábrela desde el menú de iniciar.cmd (opción 7)."
-  else
-    echo "Falta ANTHROPIC_API_KEY"
-    echo "  → Añádela en el archivo .env y vuelve a ejecutar iniciar.cmd"
-  fi
+  api_configurada && return
+  echo "Falta ANTHROPIC_API_KEY"
+  echo "  → Añádela en el archivo .env y vuelve a ejecutar iniciar.cmd"
   exit 1
 }
 
@@ -89,9 +83,12 @@ claude_autonomo() {
     claude --dangerously-skip-permissions "$@"
 }
 
+# Claude Code recibe una clave de relleno: la de verdad la pone el proxy, que corre con
+# otro usuario. Así ni un comando del agente ni /proc la pueden leer.
 claude_api() {
   need_api_key
-  exec env -u ANTHROPIC_BASE_URL -u ANTHROPIC_AUTH_TOKEN claude "$@"
+  exec env -u ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL="$PROXY_API" \
+    ANTHROPIC_API_KEY=la-pone-el-proxy claude "$@"
 }
 
 opencode_local() {
@@ -115,18 +112,7 @@ github() {
     read -rp "¿Conectar de nuevo? (s/N) " r
     [[ $r == [sS] ]] || return 0
   fi
-  echo
-  echo "  ¿Cómo quieres conectar GitHub en este proyecto?"
-  echo
-  echo "    1) Rápido: con un código de un solo uso. Da acceso a todos tus repositorios."
-  echo "    2) Limitado: con un token solo para los repositorios que elijas. Recomendado si"
-  echo "       usas el modo autónomo o trabajas con repositorios ajenos."
-  echo
-  read -rp "  > " r
-  case "$r" in
-    2) github_token ;;
-    *) github_codigo ;;
-  esac
+  github_token
   gh auth setup-git
   echo
   echo "Conectado a GitHub como $(gh_user)."
@@ -134,17 +120,14 @@ github() {
   echo "Rulesets: bloquear «force push» y el borrado) para que ningún agente pueda reescribirla."
 }
 
-github_codigo() {
-  echo
-  echo "  1. Copia el código que aparece a continuación."
-  echo "  2. Abre https://github.com/login/device en el navegador y pégalo."
-  echo "  3. Si te pregunta por las credenciales de Git, pulsa Enter."
-  echo
-  gh auth login -h github.com -p https -w
-}
-
+# Solo con un token limitado a los repositorios del proyecto: los agentes pueden usar
+# la conexión, así que lo que pueden tocar es lo que permita el token. Un inicio de
+# sesión normal daría acceso a todos tus repositorios y a crear gists.
 github_token() {
   local token
+  echo
+  echo "  Los agentes de este proyecto podrán usar esta conexión. Por eso se hace con un"
+  echo "  token que solo da acceso a los repositorios que elijas."
   echo
   echo "  1. Abre https://github.com/settings/personal-access-tokens/new"
   echo "  2. Ponle un nombre y una caducidad (por ejemplo, 90 días)."
@@ -153,7 +136,7 @@ github_token() {
   echo "  4. En «Repository permissions» da «Read and write» a «Contents» y a «Pull requests»."
   echo "  5. Pulsa «Generate token», cópialo y pégalo aquí (no se verá al pegarlo)."
   echo
-  echo "  Con este token no se pueden crear repositorios nuevos: para eso, usa el modo rápido."
+  echo "  Con este token no se pueden crear repositorios: créalo antes en github.com y elígelo."
   echo
   read -rsp "  Token: " token
   echo
@@ -189,22 +172,6 @@ preparar() {
     sed "s/NOMBRE_PROYECTO/$nombre/" "$PLANTILLAS/CLAUDE.md" > CLAUDE.md
     cp "$PLANTILLAS/gitignore" .gitignore
     echo "Proyecto vacío creado, con un CLAUDE.md de plantilla para los agentes."
-  fi
-}
-
-# Copia de otro proyecto lo único que se comparte: la conexión con GitHub. El inicio de
-# sesión de Claude no se copia: su token se renueva y la copia dejaría de valer en uno
-# de los dos proyectos. iniciar.ps1 lo ejecuta en un contenedor sin red con la carpeta
-# personal del otro proyecto montada en $1.
-importar_sesion() {
-  local origen="${1:?}" src
-  umask 077
-  src="$origen/.config/gh/hosts.yml"
-  if [ -f "$src" ] && [ ! -L "$src" ]; then
-    mkdir -p "$HOME/.config/gh"
-    install -m 600 "$src" "$HOME/.config/gh/hosts.yml"
-    gh auth setup-git -h github.com >/dev/null 2>&1 || true
-    echo "  copiado: conexión con GitHub"
   fi
 }
 
@@ -249,9 +216,7 @@ opcion="${1:-}"
 [ $# -gt 0 ] && shift
 
 if [ -z "$opcion" ]; then
-  if [ -n "${ANTHROPIC_API_KEY:-}" ]; then api="configurada"
-  elif api_configurada; then api="configurada (solo desde el menú de iniciar.cmd)"
-  else api="sin configurar"; fi
+  if api_configurada; then api="configurada"; else api="sin configurar"; fi
   gh="$(gh_user)"
   cat <<EOF
 
@@ -281,7 +246,6 @@ case "$opcion" in
   5|claude-api)   claude_api "$@" ;;
   6|modelos)      modelos ;;
   preparar)       preparar "$@" ;;
-  importar-sesion) importar_sesion "$@" ;;
   pendiente)      pendiente ;;
   --estado)
     api_configurada && api="configurada" || api="sin configurar"

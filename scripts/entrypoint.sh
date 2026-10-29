@@ -3,7 +3,8 @@ set -euo pipefail
 
 /usr/local/bin/firewall.sh
 
-# La clave de API solo la puede leer root (ver docker-compose.yml y scripts/ia).
+# La clave de API solo la puede leer root; el proxy la añade a las peticiones de Claude
+# Code con API (ver firewall.sh y scripts/ia).
 SECRETO=/run/secrets/anthropic_api_key
 if [ -e "$SECRETO" ]; then
   chmod 0400 "$SECRETO" || true
@@ -15,8 +16,6 @@ fi
 
 as_node() { setpriv --reuid=node --regid=node --init-groups -- "$@"; }
 
-# La carpeta personal se comparte entre proyectos: si dos contenedores arrancan
-# a la vez, git config puede encontrarse el fichero bloqueado. No es grave.
 git_config() { as_node git config --global "$@" || echo "[entorno] aviso: no se pudo fijar git $1"; }
 
 if [ -n "${GIT_USER_NAME:-}" ]; then git_config user.name "$GIT_USER_NAME"; fi

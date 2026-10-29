@@ -8,7 +8,7 @@ $Profiles = if ($LlamaCpp) { @("--profile", "llamacpp") } else { @() }
 $utf8 = New-Object Text.UTF8Encoding $false
 
 # Debe coincidir con LABEL bulkhead.version del Dockerfile.
-$VersionImagen = "6"
+$VersionImagen = "7"
 # Cada proyecto es el proyecto de Compose "bulkhead-<nombre>"; "general" es "bulkhead".
 $Prefijo = "bulkhead"
 $NombreValido = '^[a-z][a-z0-9-]{0,29}$'
@@ -196,11 +196,8 @@ function Encender($p) {
     return $ok
 }
 
-# -ComoRoot solo para "ia claude-api": la clave de API solo la puede leer root, e "ia"
-# se la pasa a Claude Code y baja enseguida al usuario node.
-function Abrir($p, $titulo, [string[]]$comando, [switch]$ComoRoot) {
-    $usuario = if ($ComoRoot) { "root" } else { "node" }
-    $exec = @("exec", "-it", "-u", $usuario, "-w", "/workspace", (Contenedor $p)) + $comando
+function Abrir($p, $titulo, [string[]]$comando) {
+    $exec = @("exec", "-it", "-u", "node", "-w", "/workspace", (Contenedor $p)) + $comando
     if (Get-Command wt.exe -ErrorAction SilentlyContinue) {
         & wt.exe -w 0 new-tab --title "$titulo ($p)" -d $PSScriptRoot docker @exec
         Ok "$titulo abierto en una pestaña nueva de esta ventana"
@@ -311,7 +308,7 @@ function MenuProyecto($p) {
                 Leer "   Pulsa Enter para volver al menú" | Out-Null
             }
             "7" {
-                if ($hayApi) { Abrir $p "Claude Code (API)" @("ia", "claude-api") -ComoRoot }
+                if ($hayApi) { Abrir $p "Claude Code (API)" @("ia", "claude-api") }
                 else { Esperar-Tecla "Falta la clave de API" "Añade ANTHROPIC_API_KEY=tu-clave en el archivo .env de esta carpeta y vuelve a ejecutar iniciar.cmd." }
             }
             "8" {
@@ -324,19 +321,6 @@ function MenuProyecto($p) {
             default { Esperar-Tecla "Opción no válida: '$op'" "Escribe un número del 0 al 8 y pulsa Enter." }
         }
     }
-}
-
-# Copia de un proyecto a otro la conexión con GitHub (ver "ia importar-sesion"). Se hace
-# en un contenedor sin red que monta las dos carpetas personales.
-function CopiarSesion($origen, $destino) {
-    $parametros = @("run", "--rm", "--network", "none", "--entrypoint", "ia", "-u", "node",
-        "-v", "$(NombreCompose $origen)_home:/origen:ro",
-        "-v", "$(NombreCompose $destino)_home:/home/node",
-        (Imagen), "importar-sesion", "/origen")
-    $copiado = @(Dock @parametros)
-    if ($LASTEXITCODE -ne 0) { Aviso "No se pudo copiar nada del proyecto $origen"; return }
-    if ($copiado.Count -eq 0) { Nota "El proyecto $origen no tiene nada que copiar."; return }
-    foreach ($l in $copiado) { Ok ("Del proyecto ${origen}: " + ($l.Trim() -replace '^copiado: ', '')) }
 }
 
 function NuevoProyecto {
@@ -369,32 +353,7 @@ function NuevoProyecto {
 
     if (-not (Encender $nombre)) { Esperar-Tecla "No se pudo crear el proyecto" "Revisa los mensajes de arriba."; return }
 
-    # Cada proyecto tiene su carpeta personal y sus sesiones. Se ofrece copiar de otro la
-    # conexión con GitHub.
-    $otros = @(Proyectos | Where-Object { $_.Nombre -ne $nombre } | ForEach-Object { $_.Nombre })
-    if ($otros.Count -gt 0) {
-        Write-Host ""
-        Nota "Este proyecto tiene sus propias sesiones: Claude Code te pedirá iniciar sesión"
-        Nota "la primera vez. Puedes copiar de otro proyecto de confianza su conexión con"
-        Nota "GitHub: este tendrá acceso a los mismos repositorios."
-        $origen = ""
-        if ($otros.Count -eq 1) {
-            $r = Leer "   ¿Copiar la conexión con GitHub del proyecto '$($otros[0])'? (s/N)"
-            if ($null -eq $r) { exit 0 }
-            if ($r.Trim() -match '^[sS]') { $origen = $otros[0] }
-        } else {
-            Nota "Proyectos: $($otros -join ', ')"
-            $origen = Leer "   ¿De cuál copiar la conexión con GitHub? (nombre, o Enter para no copiar)"
-            if ($null -eq $origen) { exit 0 }
-            $origen = $origen.Trim().ToLower()
-            if ($origen -and $otros -notcontains $origen) {
-                Aviso "No hay ningún proyecto llamado '$origen': no se copia nada"
-                $origen = ""
-            }
-        }
-        if ($origen) { CopiarSesion $origen $nombre }
-        Write-Host ""
-    }
+    # Cada proyecto tiene su carpeta personal y sus sesiones, y su propia conexión con GitHub.
     if (-not (Aqui $nombre @("ia", "preparar", $url)) -and $url) {
         Write-Host ""
         $r = Leer "   ¿Conectar tu cuenta de GitHub y volver a intentarlo? (S/n)"
@@ -481,7 +440,7 @@ function PararTodo {
 function Imagen {
     $i = @(Dock compose config --images | Where-Object { $_ -notmatch "llama" })
     if ($i.Count -gt 0) { return $i[0] }
-    return "ghcr.io/abarriuso/bulkhead:latest"
+    return "ghcr.io/abarriuso/bulkhead:$VersionImagen"
 }
 
 function VersionDe($imagen) {
