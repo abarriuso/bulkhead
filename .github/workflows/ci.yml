@@ -36,7 +36,7 @@ jobs:
           if ($r) { exit 1 }
       - name: Versión de la imagen igual en Dockerfile e iniciar.ps1
         run: |
-          d=$(sed -n 's/^LABEL entorno-ia.version="\(.*\)"/\1/p' Dockerfile)
+          d=$(sed -n 's/^LABEL bulkhead.version="\(.*\)"/\1/p' Dockerfile)
           p=$(sed -n 's/^\$VersionImagen = "\(.*\)"/\1/p' iniciar.ps1 | tr -d '\r')
           echo "Dockerfile=$d iniciar.ps1=$p"
           test -n "$d" && test "$d" = "$p"
@@ -162,9 +162,9 @@ jobs:
       - name: Segundo proyecto con sus propios archivos y puertos
         run: |
           PROYECTO=prueba PUERTO_3000=3001 PUERTO_5173=5174 PUERTO_8080=8081 \
-            docker compose -p entorno-ia-prueba up -d --wait workspace
-          general=entorno-ia-workspace-1
-          prueba=entorno-ia-prueba-workspace-1
+            docker compose -p bulkhead-prueba up -d --wait workspace
+          general=bulkhead-workspace-1
+          prueba=bulkhead-prueba-workspace-1
           test "$(docker port $prueba 3000)" = "127.0.0.1:3001"
           # Ni los archivos ni la carpeta personal (sesiones, hooks, configuración) se comparten.
           docker exec -u node $general sh -c 'echo x > /workspace/marca && echo x > /home/node/marca'
@@ -178,7 +178,7 @@ jobs:
             echo "github.com: {user: prueba}" > ~/.config/gh/hosts.yml &&
             echo "{\"a\":{\"type\":\"api\",\"key\":\"k\"}}" > ~/.local/share/opencode/auth.json'
           docker run --rm --network none --entrypoint ia -u node \
-            -v entorno-ia_home:/origen:ro -v entorno-ia-prueba_home:/home/node \
+            -v bulkhead_home:/origen:ro -v bulkhead-prueba_home:/home/node \
             "$(docker compose config --images | grep -v llama)" importar-sesion /origen
           docker exec -u node $prueba test -e /home/node/.config/gh/hosts.yml
           ! docker exec -u node $prueba test -e /home/node/.local/share/opencode/auth.json || exit 1
@@ -194,14 +194,14 @@ jobs:
           test "$(docker exec -u node $prueba ia pendiente)" = "cambios sin guardar en git (commit)"
           # Borrar un proyecto como lo hace iniciar.ps1 no toca los demás.
           docker rm -f $prueba
-          docker volume rm entorno-ia-prueba_workspace entorno-ia-prueba_home
+          docker volume rm bulkhead-prueba_workspace bulkhead-prueba_home
           docker exec -u node $general test -e /home/node/marca
       - name: Open WebUI arranca y no alcanza los proyectos
         run: |
           docker compose --profile openwebui up -d --wait openwebui
           curl -sf --max-time 10 -o /dev/null http://127.0.0.1:3100/health
-          test "$(docker inspect -f '{{range $n, $_ := .NetworkSettings.Networks}}{{$n}} {{end}}' entorno-ia-openwebui-1)" = "entorno-ia_chat "
-          ! docker compose exec -T openwebui curl -s --max-time 5 -o /dev/null http://entorno-ia-workspace-1:8080 || exit 1
+          test "$(docker inspect -f '{{range $n, $_ := .NetworkSettings.Networks}}{{$n}} {{end}}' bulkhead-openwebui-1)" = "bulkhead_chat "
+          ! docker compose exec -T openwebui curl -s --max-time 5 -o /dev/null http://bulkhead-workspace-1:8080 || exit 1
       # Se publica exactamente la imagen que ha pasado las pruebas, para que
       # iniciar.cmd la descargue en vez de construirla.
       - name: Publicar la imagen probada
@@ -220,5 +220,5 @@ jobs:
       - name: Parar
         if: always()
         run: |
-          docker rm -f entorno-ia-prueba-workspace-1 || true
+          docker rm -f bulkhead-prueba-workspace-1 || true
           docker compose --profile openwebui down -v

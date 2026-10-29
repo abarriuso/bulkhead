@@ -15,7 +15,7 @@ fi
 
 LOCAL_URL="${LOCAL_URL:-http://host.docker.internal:1234}"
 LOCAL_MODEL="${LOCAL_MODEL:-}"
-PLANTILLAS=/usr/local/share/entorno-ia
+PLANTILLAS=/usr/local/share/bulkhead
 
 local_models() { curl -sf --max-time 3 "$LOCAL_URL/v1/models" | jq -r '.data[].id' | grep -viE 'embed' || true; }
 
