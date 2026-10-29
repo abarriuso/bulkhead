@@ -130,12 +130,6 @@ Si esto no encaja con lo que buscas, puede que te sirva mejor alguna de estas:
 | Probar modelos locales sin complicarte | [LM Studio](https://lmstudio.ai) u [Ollama](https://ollama.com) | Sirven el modelo, pero no aíslan al agente |
 | Entornos para un equipo con varias personas | [Coder](https://coder.com) | Más potente y más complejo de mantener |
 
-## Para quien mantiene el repositorio
-
-- La CI publica la imagen en `ghcr.io/<usuario>/claude-code-local-llm-docker` en cada push a `main` y cada lunes, con las últimas versiones de Claude Code y OpenCode. La primera vez hay que hacer **pública** la imagen en GitHub (*Packages → Package settings → Change visibility*); mientras sea privada, `iniciar.cmd` la construye en el PC del usuario.
-- Si cambias la imagen (`Dockerfile`, `scripts/`, `plantillas/`), sube `LABEL entorno-ia.version` en el `Dockerfile` y `$VersionImagen` en `iniciar.ps1`. La CI comprueba que coinciden.
-- Los planos de `docs/img` son SVG editados a mano, con su paleta clara y oscura dentro del propio archivo.
-
 ## Licencia
 
 [MIT](LICENSE).
