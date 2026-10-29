@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Continue"
 Set-Location $PSScriptRoot
 try { [Console]::OutputEncoding = [Text.Encoding]::UTF8 } catch { }
-try { $Host.UI.RawUI.WindowTitle = "claude-code-local-llm-docker" } catch { }
+try { $Host.UI.RawUI.WindowTitle = "bulkhead" } catch { }
 $Moderna = [bool]$env:WT_SESSION
 $Profiles = if ($LlamaCpp) { @("--profile", "llamacpp") } else { @() }
 $utf8 = New-Object Text.UTF8Encoding $false
@@ -53,7 +53,7 @@ function Banner {
     Write-Host ""
     Write-Host "  ┌──────────────────────────────────────────────────────────┐" -ForegroundColor DarkCyan
     Write-Host "  │" -ForegroundColor DarkCyan -NoNewline
-    Write-Host "   claude-code-local-llm-docker                           " -ForegroundColor White -NoNewline
+    Write-Host "   bulkhead                                               " -ForegroundColor White -NoNewline
     Write-Host "│" -ForegroundColor DarkCyan
     Write-Host "  │" -ForegroundColor DarkCyan -NoNewline
     Write-Host "   Agentes de IA en un entorno aislado para cada uno de   " -ForegroundColor DarkGray -NoNewline
@@ -80,7 +80,7 @@ function LMStudioActivo {
 
 # Ejecuta docker con un indicador de progreso. Con -Silencioso no informa de los fallos.
 function Esperar($texto, [string[]]$argumentos, [switch]$Silencioso) {
-    $log = Join-Path $env:TEMP "claude-code-local-llm-docker.log"
+    $log = Join-Path $env:TEMP "bulkhead.log"
     $err = "$log.err"
     $vacio = "$log.in"
     Set-Content $vacio "" -NoNewline
@@ -481,7 +481,7 @@ function PararTodo {
 function Imagen {
     $i = @(Dock compose config --images | Where-Object { $_ -notmatch "llama" })
     if ($i.Count -gt 0) { return $i[0] }
-    return "ghcr.io/abarriuso/claude-code-local-llm-docker:latest"
+    return "ghcr.io/abarriuso/bulkhead:latest"
 }
 
 function VersionDe($imagen) {

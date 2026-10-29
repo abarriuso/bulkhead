@@ -9,7 +9,7 @@ name: entorno-ia
 
 services:
   workspace:
-    image: ${IMAGEN:-ghcr.io/abarriuso/claude-code-local-llm-docker:latest}
+    image: ${IMAGEN:-ghcr.io/abarriuso/bulkhead:latest}
     build: .
     restart: unless-stopped
     # Solo estas variables de .env entran al contenedor. ANTHROPIC_API_KEY no: llega
