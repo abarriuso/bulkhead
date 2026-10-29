@@ -177,7 +177,7 @@ jobs:
           # Con Claude Code con API en marcha, la clave tampoco aparece en ningún proceso.
           docker compose exec -T -d -u node workspace timeout 30 ia claude-api -p hola
           sleep 5
-          ! docker compose exec -T -u node workspace sh -c 'grep -q -a sk-ant-prueba-ci /proc/*/environ /proc/*/cmdline 2>/dev/null' || exit 1
+          ! docker compose exec -T -u node workspace sh -c 'grep -q -a 'sk-ant-prueba-c[i]' /proc/*/environ /proc/*/cmdline 2>/dev/null' || exit 1
       - name: Políticas de Claude Code y OpenCode
         run: |
           docker compose exec -T workspace test -s /etc/claude-code/managed-settings.json
