@@ -65,7 +65,7 @@ OpenCode usa `AGENTS.md` y, si no existe, también lee `CLAUDE.md`.
 
 ## 5. Permisos: normal o autónomo
 
-- **Claude Code (opción 1):** pide permiso antes de editar archivos o ejecutar comandos. Ideal para empezar y entender qué hace.
+- **Claude Code (opción 1):** pide permiso antes de editar archivos o ejecutar comandos. Ideal para empezar y entender qué hace. En este entorno, «Sí, y no volver a preguntar» no se guarda para siempre: así un repositorio tampoco puede dejar comandos aprobados. Para que no pregunte por cada edición, pulsa `Shift+Tab` hasta *accept edits*.
 - **Claude Code autónomo (opción 2):** no pide permiso. Es como trabaja mucha gente con tareas largas, pero **solo con proyectos y repositorios de confianza**. El aislamiento protege tu ordenador, pero no impide que unas instrucciones escondidas en un archivo, un issue o una web (*prompt injection*) engañen al agente para que borre cosas o envíe tu código a GitHub o a otra API permitida.
 - **OpenCode local (opción 3):** pide permiso antes de editar archivos o ejecutar comandos, como Claude Code. Dentro puedes activar la aprobación automática; aplica el mismo criterio que con el modo autónomo.
 
