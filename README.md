@@ -1,4 +1,4 @@
-# claude-code-local-llm-docker
+# bulkhead
 
 Agentes de IA de programación en Windows sin darles acceso al resto de tu ordenador: **Claude Code** con tu cuenta de Anthropic y **OpenCode** con un modelo local en tu propia GPU. Cada proyecto va en su propio contenedor de Docker, protegido por un cortafuegos. Solo hace falta instalar Docker Desktop.
 

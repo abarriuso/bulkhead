@@ -52,7 +52,7 @@ Sin comandos. Tiempo total: unos 20 minutos.
 
 ### Paso 2. Descargar el programa
 
-1. Entrar en https://github.com/abarriuso/claude-code-local-llm-docker
+1. Entrar en https://github.com/abarriuso/bulkhead
 2. Botón verde **Code** → **Download ZIP**.
 3. Clic derecho en el ZIP descargado → **Extraer todo** → **Extraer**.
 
@@ -104,8 +104,8 @@ Reiniciar, abrir Docker Desktop y esperar a *Engine running*. Después, en Power
 
 ```powershell
 cd $HOME\Documents
-git clone https://github.com/abarriuso/claude-code-local-llm-docker.git
-cd claude-code-local-llm-docker
+git clone https://github.com/abarriuso/bulkhead.git
+cd bulkhead
 .\iniciar.cmd
 ```
 

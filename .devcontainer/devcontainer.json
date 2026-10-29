@@ -1,5 +1,5 @@
 {
-  "name": "claude-code-local-llm-docker",
+  "name": "bulkhead",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "workspace",
   "workspaceFolder": "/workspace",

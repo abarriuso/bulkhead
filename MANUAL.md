@@ -33,8 +33,8 @@ Instalación completa desde cero: [INSTALACION.md](INSTALACION.md).
 Con Git:
 
 ```powershell
-git clone https://github.com/abarriuso/claude-code-local-llm-docker.git
-cd claude-code-local-llm-docker
+git clone https://github.com/abarriuso/bulkhead.git
+cd bulkhead
 ```
 
 Sin Git: en GitHub, *Code → Download ZIP*, y descomprimir.
