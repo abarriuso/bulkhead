@@ -34,12 +34,13 @@ jobs:
           $r = Invoke-ScriptAnalyzer -Path ./iniciar.ps1 -Severity Error
           $r | Format-Table
           if ($r) { exit 1 }
-      - name: Versión de la imagen igual en Dockerfile e iniciar.ps1
+      - name: Versión de la imagen igual en Dockerfile, iniciar.ps1 y docker-compose.yml
         run: |
           d=$(sed -n 's/^LABEL bulkhead.version="\(.*\)"/\1/p' Dockerfile)
           p=$(sed -n 's/^\$VersionImagen = "\(.*\)"/\1/p' iniciar.ps1 | tr -d '\r')
-          echo "Dockerfile=$d iniciar.ps1=$p"
-          test -n "$d" && test "$d" = "$p"
+          c=$(sed -n 's/.*ghcr.io\/abarriuso\/bulkhead:\([^}]*\)}.*/\1/p' docker-compose.yml)
+          echo "Dockerfile=$d iniciar.ps1=$p docker-compose.yml=$c"
+          test -n "$d" && test "$d" = "$p" && test "$d" = "$c"
       - name: Políticas de los agentes en JSON válido
         run: |
           jq empty plantillas/politica-claude.json
@@ -68,13 +69,38 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     needs: lint
-    # packages: write solo se usa en el último paso, para publicar la imagen ya probada.
+    # packages, id-token y attestations solo se usan al final, para publicar la imagen ya
+    # probada con una atestación firmada de dónde se ha construido.
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
     env:
       # Clave falsa para comprobar que solo la ve quien debe.
       ANTHROPIC_API_KEY: sk-ant-prueba-ci
+      # Abre una conexión para npm por el proxy y dentro pide otra web (SNI distinto).
+      SNI_DISTINTO: |
+        import socket, ssl, sys
+        s = socket.create_connection(("127.0.0.1", 3128), timeout=10)
+        s.sendall(b"CONNECT registry.npmjs.org:443 HTTP/1.1\r\nHost: registry.npmjs.org:443\r\n\r\n")
+        if b" 200 " not in s.recv(4096):
+            sys.exit("el proxy no abre la conexión para npm")
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        try:
+            t = ctx.wrap_socket(s, server_hostname="www.cloudflare.com")
+            t.sendall(b"GET / HTTP/1.1\r\nHost: www.cloudflare.com\r\nConnection: close\r\n\r\n")
+            r = t.recv(200)
+        except (ssl.SSLError, OSError) as e:
+            print("bloqueado:", e)
+            sys.exit(0)
+        # Squid puede contestar con su página de error (403) en vez de cortar.
+        if not r.startswith(b"HTTP/1.1 2") and not r.startswith(b"HTTP/1.1 3"):
+            print("bloqueado:", r.split(b"\r\n")[0])
+            sys.exit(0)
+        sys.exit("NO bloqueado: %r" % r[:80])
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -103,25 +129,55 @@ jobs:
           ! docker compose exec -T -u node workspace iptables -L || exit 1
       - name: Cortafuegos bloquea lo no permitido
         run: |
-          ! docker compose exec -T -u node workspace curl -s --max-time 5 -o /dev/null https://example.com || exit 1
-          # El DNS funciona por el resolvedor de Docker, pero el puerto 53 hacia fuera no.
-          docker compose exec -T -u node workspace getent hosts api.anthropic.com
+          ! docker compose exec -T -u node workspace curl -sf --max-time 5 -o /dev/null https://example.com || exit 1
+          # Sin proxy no hay salida, ni siquiera a la IP de un dominio permitido.
+          ip=$(docker compose exec -T workspace getent ahostsv4 registry.npmjs.org | awk 'NR==1{print $1}')
+          ! docker compose exec -T -u node workspace curl -s --noproxy '*' --max-time 5 -o /dev/null https://registry.npmjs.org || exit 1
+          # La IP de npm es de Cloudflare y sirve otras webs. Antes se podía llegar a ellas.
+          ! docker compose exec -T -u node workspace curl -s --noproxy '*' --max-time 5 -o /dev/null --resolve "www.cloudflare.com:443:$ip" https://www.cloudflare.com || exit 1
+          ! docker compose exec -T -u node workspace curl -sf --max-time 5 -o /dev/null "https://$ip" || exit 1
+          # El agente no tiene DNS (sería un túnel), ni el puerto 53 hacia fuera.
+          ! docker compose exec -T -u node workspace getent hosts api.anthropic.com || exit 1
+          docker compose exec -T workspace getent hosts api.anthropic.com
           ! docker compose exec -T -u node workspace timeout 3 bash -c '</dev/tcp/1.1.1.1/53' || exit 1
           ! docker compose exec -T -u node workspace timeout 3 bash -c '</dev/tcp/8.8.8.8/53' || exit 1
+      - name: El proxy no se deja engañar con otro nombre dentro de la conexión
+        run: |
+          # Fastly sirve otras webs según la cabecera Host: el proxy descifra PyPI y no
+          # reenvía una petición para otra web (403 por la regla, o 503 porque la conexión
+          # descifrada está fijada a pypi.org). En ningún caso llega a contactar con ella.
+          codigo=$(docker compose exec -T -u node workspace curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -H 'Host: www.python.org' https://pypi.org/ || true)
+          echo "PyPI con Host de otra web: $codigo"
+          docker compose exec -T workspace tail -n 3 /var/log/bulkhead-proxy/conexiones.log
+          [ "$codigo" = 403 ] || [ "$codigo" = 503 ]
+          ! docker compose exec -T workspace grep -q 'TCP_MISS.*www\.python\.org' /var/log/bulkhead-proxy/conexiones.log || exit 1
+          # Conexión abierta para npm, pero con el nombre (SNI) de otra web de Cloudflare.
+          docker compose exec -T -u node workspace python3 -c "$SNI_DISTINTO"
       - name: Cortafuegos permite Anthropic, npm, PyPI y GitHub
         run: |
           docker compose exec -T -u node workspace curl -s --max-time 10 -o /dev/null https://api.anthropic.com
           docker compose exec -T -u node workspace curl -s --max-time 10 -o /dev/null https://registry.npmjs.org
           docker compose exec -T -u node workspace curl -s --max-time 10 -o /dev/null https://pypi.org
           docker compose exec -T -u node workspace curl -s --max-time 10 -o /dev/null https://github.com
+          # PyPI pasa por la inspección del proxy: pip tiene que fiarse de su certificado.
+          docker compose exec -T -u node workspace sh -c 'python3 -m venv /tmp/v && /tmp/v/bin/pip download -q --no-deps -d /tmp/d six'
+          docker compose exec -T -u node workspace git ls-remote https://github.com/abarriuso/bulkhead HEAD
       - name: La clave de API solo la puede leer root
         run: |
           test "$(docker compose exec -T workspace stat -c %U:%a /run/secrets/anthropic_api_key)" = "root:400"
           test -z "$(docker compose exec -T -u node workspace printenv ANTHROPIC_API_KEY)"
           ! docker compose exec -T -u node workspace cat /run/secrets/anthropic_api_key || exit 1
           ! docker compose exec -T -u node workspace sh -c 'grep -q -a sk-ant-prueba-ci /proc/*/environ 2>/dev/null' || exit 1
+          ! docker compose exec -T -u node workspace sh -c 'grep -rqs sk-ant-prueba-ci /etc/bulkhead-proxy /var/lib/bulkhead-proxy' || exit 1
           docker compose exec -T -u node workspace ia --estado | grep -q '|configurada|'
           docker compose exec -T workspace ia claude-api --version
+          # El proxy pone la clave: Anthropic responde que la clave (falsa) no vale, no que falta.
+          docker compose exec -T -u node workspace curl -s --max-time 15 http://127.0.0.1:3129/v1/models | tee r.json
+          grep -q 'invalid x-api-key' r.json
+          # Con Claude Code con API en marcha, la clave tampoco aparece en ningún proceso.
+          docker compose exec -T -d -u node workspace timeout 30 ia claude-api -p hola
+          sleep 5
+          ! docker compose exec -T -u node workspace sh -c 'grep -q -a "sk-ant-prueba-c[i]" /proc/*/environ /proc/*/cmdline 2>/dev/null' || exit 1
       - name: Políticas de Claude Code y OpenCode
         run: |
           docker compose exec -T workspace test -s /etc/claude-code/managed-settings.json
@@ -132,7 +188,9 @@ jobs:
             echo "{\"agent\":{\"build\":{\"permission\":{\"bash\":{\"**\":\"allow\"},\"read\":{\"**\":\"allow\"}}}}}" > opencode.json
             printf "%s\n" "---" "description: hostil" "mode: subagent" "permission:" "  bash: allow" "---" "x" > .opencode/agent/hostil.md
             echo "require(\"fs\").writeFileSync(\"/workspace/PLUGIN_EJECUTADO\", \"1\"); export default async () => ({})" > .opencode/plugin/x.js'
-          docker compose exec -T -u node -w /workspace workspace opencode debug agent build 2>/dev/null > agente.json
+          # Solo admite el proveedor local, que "ia local" configura antes de abrir OpenCode.
+          docker compose exec -T -u node workspace sh -c 'mkdir -p ~/.config/opencode && echo "{\"provider\":{\"local\":{\"npm\":\"@ai-sdk/openai-compatible\",\"options\":{\"baseURL\":\"http://host.docker.internal:1234/v1\"},\"models\":{\"m\":{}}}}}" > ~/.config/opencode/opencode.json'
+          docker compose exec -T -u node -w /workspace workspace opencode debug agent build > agente.json || { head -c 2000 agente.json; exit 1; }
           ! docker compose exec -T -u node workspace test -e /workspace/PLUGIN_EJECUTADO || exit 1
           docker compose exec -T -u node -w /workspace workspace rm -rf opencode.json .opencode
           python3 - agente.json <<'EOF'
@@ -170,24 +228,11 @@ jobs:
           docker exec -u node $general sh -c 'echo x > /workspace/marca && echo x > /home/node/marca'
           ! docker exec -u node $prueba test -e /workspace/marca || exit 1
           ! docker exec -u node $prueba test -e /home/node/marca || exit 1
-          # Copiar de otro proyecto (como iniciar.ps1): solo la conexión con GitHub. Ni el
-          # login de Claude, ni ajustes, ni las claves de otras herramientas.
-          docker exec -u node $general sh -c 'mkdir -p ~/.claude ~/.config/gh ~/.local/share/opencode &&
-            echo "{}" > ~/.claude/.credentials.json &&
-            echo "{\"hooks\":{}}" > ~/.claude/settings.json &&
-            echo "github.com: {user: prueba}" > ~/.config/gh/hosts.yml &&
-            echo "{\"a\":{\"type\":\"api\",\"key\":\"k\"}}" > ~/.local/share/opencode/auth.json'
-          docker run --rm --network none --entrypoint ia -u node \
-            -v bulkhead_home:/origen:ro -v bulkhead-prueba_home:/home/node \
-            "$(docker compose config --images | grep -v llama)" importar-sesion /origen
-          docker exec -u node $prueba test -e /home/node/.config/gh/hosts.yml
-          ! docker exec -u node $prueba test -e /home/node/.local/share/opencode/auth.json || exit 1
-          ! docker exec -u node $prueba test -e /home/node/.claude/.credentials.json || exit 1
-          ! docker exec -u node $prueba test -e /home/node/.claude/settings.json || exit 1
           # Un servidor de desarrollo se abre desde el PC, pero no desde otro proyecto.
           docker exec -d -u node -w /workspace $general python3 -m http.server 8080 --bind 0.0.0.0
           curl -sf --max-time 5 --retry 15 --retry-delay 1 --retry-all-errors -o /dev/null http://127.0.0.1:8080
-          ! docker exec -u node $prueba curl -s --max-time 5 -o /dev/null http://$general:8080 || exit 1
+          ! docker exec -u node $prueba curl -s --noproxy "*" --max-time 5 -o /dev/null http://$general:8080 || exit 1
+          ! docker exec -u node $prueba curl -sf --max-time 5 -o /dev/null http://$general:8080 || exit 1
           # Proyecto nuevo con plantilla para los agentes.
           docker exec -u node -w /workspace $prueba ia preparar
           docker exec -u node $prueba grep -q '^# prueba' /workspace/CLAUDE.md
@@ -204,19 +249,40 @@ jobs:
           ! docker compose exec -T openwebui curl -s --max-time 5 -o /dev/null http://bulkhead-workspace-1:8080 || exit 1
       # Se publica exactamente la imagen que ha pasado las pruebas, para que
       # iniciar.cmd la descargue en vez de construirla.
+      - name: Registros del proxy
+        if: failure()
+        run: |
+          docker compose exec -T workspace cat /var/log/bulkhead-proxy/conexiones.log || true
+          docker compose exec -T -u proxy workspace tail -n 50 /var/lib/bulkhead-proxy/cache.log || true
       - name: Publicar la imagen probada
+        id: publicar
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           probada=$(docker compose config --images | grep -v llama)
           nombre="ghcr.io/${GITHUB_REPOSITORY,,}"
+          version=$(sed -n 's/^LABEL bulkhead.version="\(.*\)"/\1/p' Dockerfile)
           echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          for etiqueta in "$GITHUB_SHA" latest; do
+          for etiqueta in "$GITHUB_SHA" "$version" latest; do
             docker tag "$probada" "$nombre:$etiqueta"
             docker push "$nombre:$etiqueta"
           done
-          docker logout ghcr.io
+          digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$nombre:$version")
+          echo "nombre=$nombre" >> "$GITHUB_OUTPUT"
+          echo "digest=${digest#*@}" >> "$GITHUB_OUTPUT"
+      # Permite comprobar que la imagen la ha construido esta CI desde este repositorio:
+      # gh attestation verify oci://ghcr.io/abarriuso/bulkhead:<versión> --owner abarriuso
+      - name: Atestación de origen
+        if: steps.publicar.outcome == 'success'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ steps.publicar.outputs.nombre }}
+          subject-digest: ${{ steps.publicar.outputs.digest }}
+          push-to-registry: true
+      - name: Cerrar sesión en GHCR
+        if: always()
+        run: docker logout ghcr.io || true
       - name: Parar
         if: always()
         run: |

@@ -26,7 +26,7 @@ Para usarlo en tu propio PC.
 - Modelos locales en tu GPU NVIDIA, servidos con LM Studio o llama.cpp. Se usan con:
   - OpenCode: agente dentro del proyecto
   - Open WebUI: chat en el navegador
-- Cortafuegos de salida en lista blanca
+- Cortafuegos de salida: un proxy que solo deja pasar a los dominios permitidos
 - `iniciar.cmd`: comprueba la instalación y abre un menú
 - VS Code conectado al proyecto
 
@@ -84,10 +84,11 @@ Guía paso a paso, sin comandos: [INSTALACION.md](INSTALACION.md).
 
 ## Arquitectura
 
-![Plano de la versión escritorio. En un PC con Windows, Docker Desktop ejecuta un contenedor por proyecto con Claude Code y OpenCode. Su cortafuegos solo deja salir a Anthropic, npm, PyPI, GitHub, OpenCode y VS Code; el resto se bloquea. LM Studio, llama.cpp y Open WebUI quedan fuera del cortafuegos.](docs/img/arquitectura-escritorio.svg)
+![Plano de la versión escritorio. En un PC con Windows, Docker Desktop ejecuta un contenedor por proyecto con Claude Code y OpenCode. Los agentes solo salen por un proxy que deja pasar a Anthropic, npm, PyPI, GitHub y VS Code; el resto se bloquea. LM Studio, llama.cpp y Open WebUI quedan fuera del cortafuegos.](docs/img/arquitectura-escritorio.svg)
 
 - Los agentes se ejecutan en el contenedor del proyecto, con un usuario sin privilegios. No ven el disco de Windows ni los demás proyectos.
-- El cortafuegos se aplica antes de arrancar nada. Si no se aplica, o si no bloquea una conexión de prueba, el contenedor no arranca.
+- Los agentes no tienen DNS ni salida directa: todo pasa por un proxy, con otro usuario, que filtra por dominio y comprueba el nombre de cada conexión cifrada.
+- El cortafuegos se aplica antes de arrancar nada. Si no se aplica, o si no bloquea las conexiones de prueba, el contenedor no arranca.
 - La lista completa de destinos permitidos está en [scripts/firewall.sh](scripts/firewall.sh). Se amplía con `FIREWALL_ALLOW` en `.env`.
 
 ![Plano previsto de la versión servidor, en desarrollo. Tus dispositivos entran por Tailscale a una VM Linux en Proxmox. Cada proyecto es una instancia con su propio cortafuegos. Todas usan un modelo local compartido por redes internas sin salida a internet. Solo un descargador aparte sale a Hugging Face.](docs/img/arquitectura-servidor.svg)
@@ -100,20 +101,20 @@ Diseño previsto para la versión servidor. Todavía no está publicado.
 |---|---|---|
 | Que el agente lea o borre archivos de tu PC | Sí | Solo ve los archivos de su proyecto, no el disco de Windows |
 | Que un proyecto llegue a otro | Sí | Cada uno tiene su contenedor y su carpeta personal, y el cortafuegos bloquea las conexiones entre ellos |
-| Que el agente se conecte a cualquier sitio | En gran parte | Solo llega a la lista blanca. Ver [lista blanca por IP](#limitaciones) |
+| Que el agente se conecte a cualquier sitio | Sí | Solo sale por un proxy que filtra por dominio, incluso detrás de CDN compartidas. Ver [limitaciones](#limitaciones) |
 | Que el entorno arranque sin cortafuegos | Sí | Si no se aplica, el contenedor no arranca |
 | Que el agente consiga permisos de administrador | Sí | Corre como usuario sin privilegios y no puede escalarlos |
-| Que un repositorio cambie las reglas de los agentes | En gran parte | Claude Code y OpenCode traen políticas que el repositorio no puede cambiar. Ver [MANUAL](MANUAL.md#10-seguridad) |
+| Que un repositorio cambie las reglas de los agentes | En gran parte | Claude Code y OpenCode traen políticas que el repositorio no puede cambiar: ni permisos, ni hooks, ni plugins. Sí puede dar instrucciones al agente con su `CLAUDE.md`. Ver [MANUAL](MANUAL.md#10-seguridad) |
 | Que el agente estropee su proyecto | No | Puede escribir en `/workspace`. Usa git y sube los cambios a menudo |
 | Que salgan datos por un destino permitido | No | Si alguien engaña al agente, por ejemplo con instrucciones ocultas en un fichero o en una web, podría enviar datos a GitHub o a Anthropic |
-| Que el agente use tus credenciales | En parte | La clave de API solo la recibe Claude Code con API. La sesión de GitHub sí la puede usar: mejor un token limitado a los repositorios del proyecto |
+| Que el agente robe tus credenciales | En gran parte | Nunca ve la clave de API: la añade el proxy. Pero sí puede usarla mientras esté configurada, y usar el token de GitHub del proyecto, que solo da acceso a los repositorios que elijas |
 | Un fallo grave de Docker o del núcleo | No | Un contenedor comparte el núcleo del sistema: aísla menos que una máquina virtual |
 | LM Studio, llama.cpp y Open WebUI | No | No pasan por el cortafuegos de los proyectos |
 
 ## Limitaciones
 
 - **Plataforma.** Pensado para Windows 10 y 11 con Docker Desktop. En Linux el entorno funciona (lo prueba la CI), pero no hay lanzador. En macOS no se ha probado.
-- **Lista blanca por IP.** Los dominios permitidos se convierten en direcciones IP al arrancar. Si un servicio cambia de IP, deja de conectar hasta reiniciar el proyecto. Y como varias webs pueden compartir la IP de una CDN, permitir una puede dejar pasar otras.
+- **Lista blanca por dominio.** El proxy es tan seguro como la lista: en cada destino permitido se puede subir lo que ese sitio acepte (npm admite paquetes de cualquiera). Los programas que no usan proxy no tienen salida a internet. Y el proxy descifra la conexión con PyPI, con un certificado propio de cada proyecto, para comprobar qué web se pide.
 - **Versiones sin fijar.** Cada construcción instala la última versión de Claude Code y OpenCode. Una versión nueva puede romper algo, y un paquete comprometido entraría sin aviso.
 - **Modelos locales.** Los que caben en una GPU doméstica rinden bastante menos que Claude en tareas largas, y los recomendados cambian cada pocos meses.
 - **Docker Desktop.** Es de pago en empresas de más de 250 empleados o de más de 10 millones de dólares de facturación anual.
