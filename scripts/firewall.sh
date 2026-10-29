@@ -136,9 +136,9 @@ forwarded_for delete
 via off
 httpd_suppress_version_string on
 shutdown_lifetime 1 seconds
-logformat bulkhead %tl %rm %ru sni=%ssl::>sni %>Hs
-acl bloqueado http_status 403
-access_log stdio:/var/log/bulkhead-proxy/bloqueados.log logformat=bulkhead bloqueado
+logformat bulkhead %tl %Ss/%>Hs %rm %ru host=%{Host}>h sni=%ssl::>sni
+access_log stdio:/var/log/bulkhead-proxy/conexiones.log logformat=bulkhead
+pinger_enable off
 
 acl CONNECT method CONNECT
 acl puerto443 port 443

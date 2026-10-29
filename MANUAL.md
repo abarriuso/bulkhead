@@ -235,7 +235,7 @@ Los cambios se aplican al volver a abrir el proyecto desde `iniciar.cmd`. Solo e
 
 | Imagen publicada con atestación | La imagen se descarga por versión, no como `latest`, y la CI publica una atestación firmada de que se construyó aquí. Para comprobarla: `gh attestation verify oci://ghcr.io/abarriuso/bulkhead:7 --owner abarriuso` |
 
-Destinos permitidos por defecto: Anthropic y Claude, GitHub, npm, PyPI, VS Code y el modelo local. La lista completa está en [scripts/firewall.sh](scripts/firewall.sh). Lo que el proxy bloquea queda en `/var/log/bulkhead-proxy/bloqueados.log` dentro del proyecto.
+Destinos permitidos por defecto: Anthropic y Claude, GitHub, npm, PyPI, VS Code y el modelo local. La lista completa está en [scripts/firewall.sh](scripts/firewall.sh). Las conexiones del proxy quedan en `/var/log/bulkhead-proxy/conexiones.log` dentro del proyecto; las bloqueadas llevan `DENIED`.
 
 **Lo que no cubre:**
 
@@ -294,7 +294,7 @@ No uses `docker compose down -v` con el proyecto de un nombre (`-p bulkhead-…`
 | El modelo local no usa herramientas o se corta | Subir el contexto a 32768 o usar un modelo mayor |
 | No se puede clonar un repositorio | Si es privado: opción 6 (Conectar GitHub). Si no es de GitHub: añadir su dominio a `FIREWALL_ALLOW` |
 | Un proyecto no enciende (`unhealthy`) | Ver el motivo con `docker logs bulkhead-<proyecto>-workspace-1` |
-| Una herramienta no conecta (`403`, `Connection refused`, `EHOSTUNREACH`, `Could not resolve host`) | El cortafuegos bloquea ese destino: verlo en `/var/log/bulkhead-proxy/bloqueados.log` y añadirlo a `FIREWALL_ALLOW`. Si el programa no usa `HTTPS_PROXY`, no puede salir |
+| Una herramienta no conecta (`403`, `Connection refused`, `EHOSTUNREACH`, `Could not resolve host`) | El cortafuegos bloquea ese destino: buscar `DENIED` en `/var/log/bulkhead-proxy/conexiones.log` y añadir el dominio a `FIREWALL_ALLOW`. Si el programa no usa `HTTPS_PROXY`, no puede salir |
 | `pip` o Python dan un error de certificado | Usar el Python del sistema o un `venv` normal: confían en el certificado del proxy mediante `PIP_CERT` y `SSL_CERT_FILE`. Un programa con su propia lista de certificados necesita que se la indiques |
 | VS Code no termina de abrir el proyecto | Añadir a `FIREWALL_ALLOW` el dominio que aparezca en el registro de *Dev Containers* |
 | VS Code se abre como `root` o fuera de `/workspace` | Cerrar VS Code y volver a usar la opción 5 del menú |

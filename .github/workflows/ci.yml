@@ -147,6 +147,7 @@ jobs:
           docker compose exec -T -u node workspace curl -sS --max-time 10 -o /dev/null -w '%{http_code}\n' https://pypi.org/simple/six/
           codigo=$(docker compose exec -T -u node workspace curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -H 'Host: www.python.org' https://pypi.org/ || true)
           echo "PyPI con Host de otra web: $codigo"
+          docker compose exec -T workspace tail -n 5 /var/log/bulkhead-proxy/conexiones.log
           test "$codigo" = "403"
           # Conexión abierta para npm, pero con el nombre (SNI) de otra web de Cloudflare.
           docker compose exec -T -u node workspace python3 -c "$SNI_DISTINTO"
@@ -246,7 +247,7 @@ jobs:
       - name: Registros del proxy
         if: failure()
         run: |
-          docker compose exec -T workspace cat /var/log/bulkhead-proxy/bloqueados.log || true
+          docker compose exec -T workspace cat /var/log/bulkhead-proxy/conexiones.log || true
           docker compose exec -T -u proxy workspace tail -n 50 /var/lib/bulkhead-proxy/cache.log || true
       - name: Publicar la imagen probada
         id: publicar
