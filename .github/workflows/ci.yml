@@ -143,12 +143,14 @@ jobs:
           ! docker compose exec -T -u node workspace timeout 3 bash -c '</dev/tcp/8.8.8.8/53' || exit 1
       - name: El proxy no se deja engañar con otro nombre dentro de la conexión
         run: |
-          # Fastly sirve otras webs según la cabecera Host: el proxy la comprueba en PyPI.
-          docker compose exec -T -u node workspace curl -sS --max-time 10 -o /dev/null -w '%{http_code}\n' https://pypi.org/simple/six/
+          # Fastly sirve otras webs según la cabecera Host: el proxy descifra PyPI y no
+          # reenvía una petición para otra web (403 por la regla, o 503 porque la conexión
+          # descifrada está fijada a pypi.org). En ningún caso llega a contactar con ella.
           codigo=$(docker compose exec -T -u node workspace curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -H 'Host: www.python.org' https://pypi.org/ || true)
           echo "PyPI con Host de otra web: $codigo"
-          docker compose exec -T workspace tail -n 5 /var/log/bulkhead-proxy/conexiones.log
-          test "$codigo" = "403"
+          docker compose exec -T workspace tail -n 3 /var/log/bulkhead-proxy/conexiones.log
+          [ "$codigo" = 403 ] || [ "$codigo" = 503 ]
+          ! docker compose exec -T workspace grep -q 'TCP_MISS.*www\.python\.org' /var/log/bulkhead-proxy/conexiones.log || exit 1
           # Conexión abierta para npm, pero con el nombre (SNI) de otra web de Cloudflare.
           docker compose exec -T -u node workspace python3 -c "$SNI_DISTINTO"
       - name: Cortafuegos permite Anthropic, npm, PyPI y GitHub
