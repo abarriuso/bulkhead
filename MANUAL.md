@@ -76,7 +76,7 @@ La pantalla principal de `iniciar.cmd`:
 ```
 
 - **Abrir un proyecto:** escribir su número. Si estaba apagado, se enciende en unos segundos.
-- **Nuevo proyecto (N):** pide un nombre (minúsculas, números y guiones) y, opcionalmente, la dirección de un repositorio. Después ofrece **copiar de otro proyecto** su conexión con GitHub (el proyecto nuevo tendrá acceso a los mismos repositorios). Copia solo de proyectos de confianza. El inicio de sesión de Claude no se copia: Claude Code lo pide la primera vez en cada proyecto. Si el repositorio es privado y GitHub no está conectado, ofrece conectarlo. Un proyecto vacío empieza con git y un `CLAUDE.md` de plantilla para los agentes.
+- **Nuevo proyecto (N):** pide un nombre (minúsculas, números y guiones) y, opcionalmente, la dirección de un repositorio. Cada proyecto tiene sus propias sesiones: Claude Code pide iniciar sesión la primera vez y GitHub se conecta en cada uno, con un token para sus repositorios. Si el repositorio es privado y GitHub no está conectado, ofrece conectarlo. Un proyecto vacío empieza con git y un `CLAUDE.md` de plantilla para los agentes.
 - **Borrar (B):** borra el contenedor, los archivos y las sesiones del proyecto. Antes avisa si hay cambios sin guardar o sin subir a GitHub, y pide escribir el nombre otra vez.
 
 **Puertos:** dentro de cada proyecto los servidores de desarrollo usan siempre 3000, 5173 y 8080. En Windows, cada proyecto los publica en puertos distintos para que puedan funcionar a la vez: el primer proyecto en 3001, 5174 y 8081, el segundo en 3002, 5175 y 8082, etc. El menú del proyecto muestra sus direcciones.
@@ -96,7 +96,7 @@ Las herramientas se abren en una **pestaña nueva** de Windows Terminal (o en un
 | **Herramientas** | |
 | 4 Terminal | Línea de comandos del proyecto (git, gh, npm, python…) |
 | 5 VS Code | Abre el proyecto en VS Code, conectado al contenedor. Instala sola la extensión *Dev Containers* |
-| 6 Conectar GitHub | Conecta GitHub en este proyecto. Necesario para repositorios privados y para subir cambios. **Rápido:** un código de un solo uso, con acceso a todos tus repositorios. **Limitado:** un token que creas en GitHub solo para el repositorio del proyecto; recomendado con el modo autónomo o con repositorios ajenos |
+| 6 Conectar GitHub | Conecta GitHub en este proyecto con un token que creas en GitHub solo para sus repositorios. Necesario para repositorios privados y para subir cambios. Los agentes del proyecto pueden usar esa conexión: por eso no se ofrece un inicio de sesión con acceso a todos tus repositorios |
 | **Avanzado** | |
 | 7 Claude Code con API | Claude Code pagando por uso con `ANTHROPIC_API_KEY` |
 | 8 Modelos locales | Lista los modelos disponibles en LM Studio o llama.cpp |
@@ -119,7 +119,7 @@ ia -h            # ayuda
 2. En el menú del proyecto, **1** (Claude Code). La primera vez muestra una URL de inicio de sesión: abrirla en el navegador de Windows, iniciar sesión y pegar el código.
 3. Para subir el trabajo a GitHub: opción **6** (Conectar GitHub), una vez en cada proyecto.
 
-Las sesiones de Claude Code, OpenCode y GitHub se conservan entre reinicios. Son de cada proyecto: al crear otro, Claude Code vuelve a pedir iniciar sesión, y el menú ofrece copiar la conexión con GitHub.
+Las sesiones de Claude Code, OpenCode y GitHub se conservan entre reinicios. Son de cada proyecto: al crear otro, Claude Code vuelve a pedir iniciar sesión y GitHub se conecta de nuevo.
 
 Los agentes leen el archivo `CLAUDE.md` del proyecto al empezar: rellénalo (o pídeles que lo hagan con `/init`). Además conocen las reglas del entorno (puertos, cortafuegos, sin `sudo`) sin que haya que explicárselas. Más consejos en [Cómo trabajar con agentes](GUIA-AGENTES.md).
 
@@ -207,13 +207,13 @@ Fichero `.env` en la carpeta del repositorio. Vale para todos los proyectos:
 | `LLAMACPP_HF_REPO` | Modelo GGUF de Hugging Face (`usuario/repo:cuantización`) |
 | `LLAMACPP_CTX` | Tamaño de contexto (recomendado 32768) |
 | `LLAMACPP_CPU_MOE` | `true` para mantener los expertos MoE en la RAM |
-| `ANTHROPIC_API_KEY` | Clave de API de Anthropic. Solo la recibe la opción 7, Claude Code con API (ver [Seguridad](#10-seguridad)). Se toma siempre de `.env`, no de las variables de Windows. La línea tiene que existir aunque esté vacía |
+| `ANTHROPIC_API_KEY` | Clave de API de Anthropic, para la opción 7, Claude Code con API. Los agentes no pueden leerla (ver [Seguridad](#10-seguridad)). Se toma siempre de `.env`, no de las variables de Windows. La línea tiene que existir aunque esté vacía |
 | `GIT_USER_NAME`, `GIT_USER_EMAIL` | Identidad de git dentro de los proyectos |
 | `FIREWALL` | `on` (por defecto) u `off` |
-| `FIREWALL_ALLOW` | Dominios, IPs o rangos extra permitidos, separados por comas |
+| `FIREWALL_ALLOW` | Dominios extra permitidos, separados por comas (`*.ejemplo.com` para sus subdominios). Una IP o un rango se permiten directamente, sin pasar por el proxy |
 | `WORKSPACE_MEMORY` | Memoria máxima de cada proyecto (por defecto `4g`) |
 | `WORKSPACE_CPUS` | Núcleos máximos de cada proyecto (por defecto `2`) |
-| `IMAGEN` | Imagen del entorno. Por defecto, la publicada por este repositorio |
+| `IMAGEN` | Imagen del entorno. Por defecto, la versión publicada por este repositorio que corresponde a esta copia |
 
 Los cambios se aplican al volver a abrir el proyecto desde `iniciar.cmd`. Solo estas variables llegan a los proyectos: si añades otras a `.env`, los agentes no las verán.
 
@@ -222,26 +222,29 @@ Los cambios se aplican al volver a abrir el proyecto desde `iniciar.cmd`. Solo e
 | Medida | Efecto |
 |---|---|
 | Un contenedor por proyecto | Cada agente solo ve los archivos de su proyecto, no los demás ni el disco de Windows |
-| Cortafuegos de salida | El contenedor solo puede conectarse a los destinos permitidos. El resto se rechaza |
+| Cortafuegos de salida por dominio | Los agentes no tienen salida directa a internet ni DNS: solo pueden hablar con un proxy (Squid, con otro usuario) que únicamente conecta con los dominios permitidos. Comprueba el nombre que va dentro de la conexión cifrada, no solo la dirección, y en PyPI descifra para comprobar también la web pedida. El resto se rechaza |
 | Arranque seguro | Si el cortafuegos no se aplica, el contenedor no arranca |
 | Usuario sin privilegios | Claude Code y OpenCode se ejecutan como `node`, sin permisos de administrador |
 | Contenedor endurecido | Sin capacidades de Linux salvo las mínimas, sin escalada de privilegios, con límites de memoria, CPU y procesos |
 | Puertos locales | Los servidores de desarrollo solo son accesibles desde el propio PC |
-| Sin acceso entre proyectos ni al PC | Un proyecto no puede conectarse a otro. Del PC solo alcanza el puerto de `LOCAL_URL` (el modelo local) |
-| Puerto 53 cerrado | Los nombres se resuelven con el DNS de Docker; no se puede usar el puerto 53 como túnel hacia fuera |
-| Carpeta personal por proyecto | Sesiones, configuración de los agentes, carpetas de confianza de Claude y VS Code son de cada proyecto. Lo que un agente deje ahí no afecta a otros proyectos; al crear uno nuevo solo se copia, si lo pides, la conexión con GitHub |
-| Clave de API protegida | `ANTHROPIC_API_KEY` llega como secreto que solo puede leer root. Solo la recibe la opción 7 (Claude Code con API). Ni la terminal, ni VS Code, ni el resto de opciones la tienen. Mientras la 7 está abierta, otro programa del mismo proyecto podría leerla |
-| Políticas de los agentes | Claude Code y OpenCode traen una configuración gestionada que los repositorios clonados no pueden cambiar. Claude Code: solo se ejecutan los hooks del entorno, no se usan servidores MCP y no lee archivos `.env` ni credenciales. OpenCode: pide permiso antes de editar o ejecutar comandos, no lee `.env`, e ignora la configuración, los agentes y los plugins que traiga el repositorio (sí lee su `AGENTS.md` y su `CLAUDE.md`) |
+| Sin acceso entre proyectos ni al PC | Un proyecto no puede conectarse a otro. Del PC, o de llama.cpp, solo alcanza la dirección y el puerto de `LOCAL_URL` (el modelo local) |
+| Sin DNS para los agentes | Los nombres los resuelve el proxy. Ni el DNS de Docker ni el puerto 53 se pueden usar como túnel hacia fuera |
+| Carpeta personal por proyecto | Sesiones, configuración de los agentes, carpetas de confianza de Claude y VS Code son de cada proyecto. Lo que un agente deje ahí no afecta a otros proyectos; no se copia nada de un proyecto a otro |
+| Clave de API protegida | `ANTHROPIC_API_KEY` llega como secreto que solo puede leer root, y es el proxy quien la añade a las peticiones de la opción 7 (Claude Code con API). Claude Code recibe una clave de relleno: ni sus comandos ni ningún otro programa del proyecto pueden leer la de verdad. Sí pueden usarla mientras el proyecto tenga clave configurada, enviando peticiones a la API de Anthropic a tu cargo |
+| Políticas de los agentes | Claude Code y OpenCode traen una configuración gestionada que los repositorios clonados no pueden cambiar. Claude Code: solo se ejecutan los hooks del entorno y las reglas de permisos de la política (un `.claude/settings.json` del repositorio no puede autorizar comandos), no se usan servidores MCP, su herramienta de lectura no abre `.env` ni credenciales y los comandos que ejecuta no heredan claves. OpenCode: solo usa el modelo local, no comparte conversaciones, pide permiso antes de editar o ejecutar comandos, no lee `.env`, e ignora la configuración, los agentes y los plugins que traiga el repositorio (sí lee su `AGENTS.md` y su `CLAUDE.md`). Estas reglas no impiden que un comando aprobado lea un archivo: lo que de verdad protege los secretos es que el usuario de los agentes no pueda abrirlos |
 
-Destinos permitidos por defecto: Anthropic y Claude, GitHub, npm, PyPI, OpenCode, VS Code y el modelo local. La lista completa está en [scripts/firewall.sh](scripts/firewall.sh).
+| Imagen publicada con atestación | La imagen se descarga por versión, no como `latest`, y la CI publica una atestación firmada de que se construyó aquí. Para comprobarla: `gh attestation verify oci://ghcr.io/abarriuso/bulkhead:7 --owner abarriuso` |
+
+Destinos permitidos por defecto: Anthropic y Claude, GitHub, npm, PyPI, VS Code y el modelo local. La lista completa está en [scripts/firewall.sh](scripts/firewall.sh). Lo que el proxy bloquea queda en `/var/log/bulkhead-proxy/bloqueados.log` dentro del proyecto.
 
 **Lo que no cubre:**
 
-- **Instrucciones ocultas (*prompt injection*).** Un README, un issue o una web pueden contener instrucciones para el agente. El cortafuegos limita adónde puede enviar datos, pero GitHub, npm y la API de Anthropic están permitidos. Por eso el modo autónomo es solo para proyectos de confianza.
+- **Instrucciones ocultas (*prompt injection*).** Un README, un issue o una web pueden contener instrucciones para el agente. El cortafuegos limita adónde puede enviar datos, pero GitHub (los repositorios de tu token), npm (que acepta paquetes de cualquiera) y la API de Anthropic están permitidos. Por eso el modo autónomo es solo para proyectos de confianza.
 - **Dentro de un mismo proyecto,** un agente engañado puede dejar en su configuración algo que se ejecute la próxima vez que abras ese proyecto, o cambiar sus credenciales. Si sospechas de un proyecto, bórralo, créalo de nuevo desde GitHub y no copies nada de él.
-- **El token de GitHub** del modo rápido (opción 6) da acceso a todos tus repositorios: un agente engañado podría usarlo en cualquiera. El modo limitado reduce el daño a los repositorios que elijas. En cualquier caso, protege la rama principal en GitHub (*Settings → Rules → Rulesets*: bloquear *force push* y borrado).
+- **El token de GitHub** (opción 6) lo pueden usar los agentes del proyecto: un agente engañado podría subir datos o borrar ramas en los repositorios que le diste. Elige solo los del proyecto y protege la rama principal en GitHub (*Settings → Rules → Rulesets*: bloquear *force push* y borrado).
 - **VS Code conectado a un proyecto** es un puente hacia Windows: no lo uses con repositorios de los que no te fíes ni a la vez que el modo autónomo.
-- **Consultas DNS.** El DNS de Docker resuelve cualquier nombre, así que un agente engañado podría filtrar datos pequeños escondidos en nombres de dominio.
+- **El proxy es tan fiable como la lista.** Si añades un dominio a `FIREWALL_ALLOW`, todo lo que se pueda subir a ese sitio es una vía de salida. Y si está detrás de una CDN que sirve otras webs con la cabecera Host (como Fastly), el proxy no lo descifra: añade solo lo que necesites.
+- **Programas que no usan proxy** no tienen salida a internet. Casi todos lo usan solos (`HTTPS_PROXY`); los que no, fallan con un error de conexión.
 - **Servidores MCP desactivados.** Por seguridad, Claude Code no carga ningún servidor MCP, tampoco los que añadas tú. OpenCode tampoco usa los que traiga un repositorio.
 - **LM Studio, llama.cpp y Open WebUI** no pasan por el cortafuegos de los proyectos.
 
@@ -253,7 +256,7 @@ Para permitir otros destinos (por ejemplo, la API de un proyecto o un CDN de paq
 FIREWALL_ALLOW=api.miproyecto.com,cdn.jsdelivr.net
 ```
 
-Y aplicar abriendo el proyecto de nuevo desde `iniciar.cmd`. Las direcciones se resuelven al arrancar: si un servicio cambia de IP y deja de conectar, apagar y volver a abrir el proyecto.
+Y aplicar abriendo el proyecto de nuevo desde `iniciar.cmd`. Si llama.cpp se recrea y cambia de dirección, apagar y volver a abrir el proyecto.
 
 ## 11. Actualizar, parar y borrar
 
@@ -291,7 +294,8 @@ No uses `docker compose down -v` con el proyecto de un nombre (`-p bulkhead-…`
 | El modelo local no usa herramientas o se corta | Subir el contexto a 32768 o usar un modelo mayor |
 | No se puede clonar un repositorio | Si es privado: opción 6 (Conectar GitHub). Si no es de GitHub: añadir su dominio a `FIREWALL_ALLOW` |
 | Un proyecto no enciende (`unhealthy`) | Ver el motivo con `docker logs bulkhead-<proyecto>-workspace-1` |
-| Una herramienta no conecta (`Connection refused`, `EHOSTUNREACH`) | El cortafuegos bloquea ese destino: añadirlo a `FIREWALL_ALLOW` |
+| Una herramienta no conecta (`403`, `Connection refused`, `EHOSTUNREACH`, `Could not resolve host`) | El cortafuegos bloquea ese destino: verlo en `/var/log/bulkhead-proxy/bloqueados.log` y añadirlo a `FIREWALL_ALLOW`. Si el programa no usa `HTTPS_PROXY`, no puede salir |
+| `pip` o Python dan un error de certificado | Usar el Python del sistema o un `venv` normal: confían en el certificado del proxy mediante `PIP_CERT` y `SSL_CERT_FILE`. Un programa con su propia lista de certificados necesita que se la indiques |
 | VS Code no termina de abrir el proyecto | Añadir a `FIREWALL_ALLOW` el dominio que aparezca en el registro de *Dev Containers* |
 | VS Code se abre como `root` o fuera de `/workspace` | Cerrar VS Code y volver a usar la opción 5 del menú |
 | La construcción de la imagen falla | Comprobar la conexión y ejecutar `docker compose build --no-cache workspace` |
@@ -299,4 +303,3 @@ No uses `docker compose down -v` con el proyecto de un nombre (`-p bulkhead-…`
 | Aviso `mode is not supported outside Swarm mode` | Es inofensivo: Compose sí aplica ese permiso al secreto de la clave, y el contenedor lo comprueba al arrancar |
 | `con el cortafuegos activo no se resuelven nombres` | Actualizar Docker Desktop (hace falta Docker Engine 26 o posterior). Si en *Settings → Docker Engine* hay un `"dns"` propio, probar a quitarlo |
 | Un repositorio trae configuración de OpenCode (`opencode.json`, `.opencode/`) y no se aplica | Es a propósito: podría saltarse los permisos o ejecutar código al abrirse. Sus `AGENTS.md` y `CLAUDE.md` sí se leen |
-| La opción 7 dice que la clave solo se entrega a las opciones que la usan | Se ha abierto `ia claude-api` desde la terminal. Abrirla desde el menú de `iniciar.cmd` |

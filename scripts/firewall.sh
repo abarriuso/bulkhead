@@ -271,7 +271,7 @@ if como_node curl -s --noproxy '*' --max-time 5 -o /dev/null https://example.com
   echo "[firewall] ERROR: se puede salir sin pasar por el proxy"
   exit 1
 fi
-if como_node curl -s -x http://127.0.0.1:3128 --max-time 5 -o /dev/null https://example.com; then
+if como_node curl -sf -x http://127.0.0.1:3128 --max-time 5 -o /dev/null https://example.com; then
   echo "[firewall] ERROR: el proxy deja pasar un dominio no permitido"
   exit 1
 fi

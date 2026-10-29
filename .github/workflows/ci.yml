@@ -96,6 +96,10 @@ jobs:
         except (ssl.SSLError, OSError) as e:
             print("bloqueado:", e)
             sys.exit(0)
+        # Squid puede contestar con su página de error (403) en vez de cortar.
+        if not r.startswith(b"HTTP/1.1 2") and not r.startswith(b"HTTP/1.1 3"):
+            print("bloqueado:", r.split(b"\r\n")[0])
+            sys.exit(0)
         sys.exit("NO bloqueado: %r" % r[:80])
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -125,13 +129,13 @@ jobs:
           ! docker compose exec -T -u node workspace iptables -L || exit 1
       - name: Cortafuegos bloquea lo no permitido
         run: |
-          ! docker compose exec -T -u node workspace curl -s --max-time 5 -o /dev/null https://example.com || exit 1
+          ! docker compose exec -T -u node workspace curl -sf --max-time 5 -o /dev/null https://example.com || exit 1
           # Sin proxy no hay salida, ni siquiera a la IP de un dominio permitido.
           ip=$(docker compose exec -T workspace getent ahostsv4 registry.npmjs.org | awk 'NR==1{print $1}')
           ! docker compose exec -T -u node workspace curl -s --noproxy '*' --max-time 5 -o /dev/null https://registry.npmjs.org || exit 1
           # La IP de npm es de Cloudflare y sirve otras webs. Antes se podía llegar a ellas.
           ! docker compose exec -T -u node workspace curl -s --noproxy '*' --max-time 5 -o /dev/null --resolve "www.cloudflare.com:443:$ip" https://www.cloudflare.com || exit 1
-          ! docker compose exec -T -u node workspace curl -s --max-time 5 -o /dev/null "https://$ip" || exit 1
+          ! docker compose exec -T -u node workspace curl -sf --max-time 5 -o /dev/null "https://$ip" || exit 1
           # El agente no tiene DNS (sería un túnel), ni el puerto 53 hacia fuera.
           ! docker compose exec -T -u node workspace getent hosts api.anthropic.com || exit 1
           docker compose exec -T workspace getent hosts api.anthropic.com
