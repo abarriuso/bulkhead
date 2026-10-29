@@ -81,7 +81,7 @@ La pantalla principal de `iniciar.cmd`:
 
 **Puertos:** dentro de cada proyecto los servidores de desarrollo usan siempre 3000, 5173 y 8080. En Windows, cada proyecto los publica en puertos distintos para que puedan funcionar a la vez: el primer proyecto en 3001, 5174 y 8081, el segundo en 3002, 5175 y 8082, etc. El menú del proyecto muestra sus direcciones.
 
-**Proyecto `general`:** si usabas una versión anterior de este repositorio, tus archivos de `/workspace` aparecen como el proyecto `general`, con los puertos de siempre (3000, 5173, 8080).
+**Proyecto `general`:** es el proyecto por defecto (`docker compose up` sin más, o VS Code con `.devcontainer/devcontainer.json`). Usa los puertos de siempre: 3000, 5173 y 8080. Si usabas una versión anterior a bulkhead, tus archivos siguen en el volumen de Docker `entorno-ia_workspace`, pero no aparecen en el menú.
 
 ## 5. Menú del proyecto
 
@@ -130,11 +130,11 @@ Con Docker Desktop abierto: ejecutar `iniciar.cmd` y elegir el proyecto. Si el e
 Sin el menú, desde la carpeta del repositorio:
 
 ```powershell
-docker exec -it -u node entorno-ia-web-workspace-1 ia     # menú del proyecto "web"
-docker exec -it -u node entorno-ia-web-workspace-1 bash   # terminal del proyecto "web"
+docker exec -it -u node bulkhead-web-workspace-1 ia     # menú del proyecto "web"
+docker exec -it -u node bulkhead-web-workspace-1 bash   # terminal del proyecto "web"
 ```
 
-Los contenedores se llaman `entorno-ia-<proyecto>-workspace-1` y aparecen agrupados en Docker Desktop (*Containers*), donde también se pueden ver sus registros, encender y apagar.
+Los contenedores se llaman `bulkhead-<proyecto>-workspace-1` y aparecen agrupados en Docker Desktop (*Containers*), donde también se pueden ver sus registros, encender y apagar.
 
 **Servidores de desarrollo:** arrancarlos escuchando en `0.0.0.0` y en el puerto 3000, 5173 u 8080. Abrirlos en Windows con la dirección que muestra el menú del proyecto. Ejemplo:
 
@@ -171,7 +171,7 @@ Una alternativa a OpenCode local para cuando solo quieres hablar con el modelo, 
 
 1. Tener el modelo local en marcha (LM Studio o llama.cpp).
 2. `iniciar.cmd` → **W**. Se abre en el navegador en http://localhost:3100.
-3. La primera vez descarga Open WebUI (varios GB) y pide crear una cuenta. La cuenta y los chats se guardan solo en este PC, en el volumen `entorno-ia_openwebui`.
+3. La primera vez descarga Open WebUI (varios GB) y pide crear una cuenta. La cuenta y los chats se guardan solo en este PC, en el volumen `bulkhead_openwebui`.
 
 Viene configurado para no salir a internet por su cuenta: no descarga modelos, no comprueba versiones, no envía telemetría y no comparte chats. Lo que **no** tiene es el cortafuegos de los proyectos: va en su propia red de Docker, que solo llega al modelo local y no a los proyectos, pero esa red sí tiene salida a internet.
 
@@ -258,16 +258,16 @@ Y aplicar abriendo el proyecto de nuevo desde `iniciar.cmd`. Las direcciones se 
 | Borrar un proyecto | `iniciar.cmd` → **B** |
 | Actualizar llama.cpp | `docker compose --profile llamacpp pull` |
 
-Los archivos de cada proyecto viven en un volumen de Docker (`entorno-ia-<proyecto>_workspace`): súbelos a GitHub para tenerlos a salvo.
+Los archivos de cada proyecto viven en un volumen de Docker (`bulkhead-<proyecto>_workspace`): súbelos a GitHub para tenerlos a salvo.
 
 **Borrar todo** (proyectos, sesiones y modelos), desde la carpeta del repositorio:
 
 ```powershell
-docker ps -aq --filter "name=entorno-ia" | ForEach-Object { docker rm -f $_ }
-docker volume ls -q --filter "name=entorno-ia" | ForEach-Object { docker volume rm $_ }
+docker ps -aq --filter "name=bulkhead" | ForEach-Object { docker rm -f $_ }
+docker volume ls -q --filter "name=bulkhead" | ForEach-Object { docker volume rm $_ }
 ```
 
-No uses `docker compose down -v` con el proyecto de un nombre (`-p entorno-ia-…`): intentaría borrar también los modelos compartidos. Para borrar un proyecto, usa la opción **B**.
+No uses `docker compose down -v` con el proyecto de un nombre (`-p bulkhead-…`): intentaría borrar también los modelos compartidos. Para borrar un proyecto, usa la opción **B**.
 
 ## 12. Solución de problemas
 
@@ -283,7 +283,7 @@ No uses `docker compose down -v` con el proyecto de un nombre (`-p entorno-ia-�
 | Memoria insuficiente en llama.cpp | Bajar `LLAMACPP_CTX`, activar `LLAMACPP_CPU_MOE` o usar una cuantización menor |
 | El modelo local no usa herramientas o se corta | Subir el contexto a 32768 o usar un modelo mayor |
 | No se puede clonar un repositorio | Si es privado: opción 6 (Conectar GitHub). Si no es de GitHub: añadir su dominio a `FIREWALL_ALLOW` |
-| Un proyecto no enciende (`unhealthy`) | Ver el motivo con `docker logs entorno-ia-<proyecto>-workspace-1` |
+| Un proyecto no enciende (`unhealthy`) | Ver el motivo con `docker logs bulkhead-<proyecto>-workspace-1` |
 | Una herramienta no conecta (`Connection refused`, `EHOSTUNREACH`) | El cortafuegos bloquea ese destino: añadirlo a `FIREWALL_ALLOW` |
 | VS Code no termina de abrir el proyecto | Añadir a `FIREWALL_ALLOW` el dominio que aparezca en el registro de *Dev Containers* |
 | VS Code se abre como `root` o fuera de `/workspace` | Cerrar VS Code y volver a usar la opción 5 del menú |

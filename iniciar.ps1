@@ -7,10 +7,10 @@ $Moderna = [bool]$env:WT_SESSION
 $Profiles = if ($LlamaCpp) { @("--profile", "llamacpp") } else { @() }
 $utf8 = New-Object Text.UTF8Encoding $false
 
-# Debe coincidir con LABEL entorno-ia.version del Dockerfile.
-$VersionImagen = "5"
-# Cada proyecto es el proyecto de Compose "entorno-ia-<nombre>"; "general" es "entorno-ia".
-$Prefijo = "entorno-ia"
+# Debe coincidir con LABEL bulkhead.version del Dockerfile.
+$VersionImagen = "6"
+# Cada proyecto es el proyecto de Compose "bulkhead-<nombre>"; "general" es "bulkhead".
+$Prefijo = "bulkhead"
 $NombreValido = '^[a-z][a-z0-9-]{0,29}$'
 
 # docker.exe deja la consola en modo "entrada VT" al salir y Read-Host empieza a
@@ -485,7 +485,7 @@ function Imagen {
 }
 
 function VersionDe($imagen) {
-    $v = Dock image inspect --format '{{index .Config.Labels `entorno-ia.version`}}' $imagen
+    $v = Dock image inspect --format '{{index .Config.Labels `bulkhead.version`}}' $imagen
     if ($LASTEXITCODE -ne 0) { return $null }
     return "$v".Trim()
 }
