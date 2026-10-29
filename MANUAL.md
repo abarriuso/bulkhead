@@ -236,6 +236,9 @@ Destinos permitidos por defecto: Anthropic y Claude, GitHub, npm, PyPI, OpenCode
 - **VS Code conectado a un proyecto** es un puente hacia Windows: no lo uses con repositorios de los que no te fíes ni a la vez que el modo autónomo.
 - **Consultas DNS.** El DNS de Docker resuelve cualquier nombre, así que un agente engañado podría filtrar datos pequeños escondidos en nombres de dominio.
 - **Servidores MCP desactivados.** Por seguridad, Claude Code no carga ningún servidor MCP, tampoco los que añadas tú. OpenCode tampoco usa los que traiga un repositorio.
+- **LM Studio, llama.cpp y Open WebUI** no pasan por el cortafuegos de los proyectos.
+
+Con el entorno conectado a internet, mejor no tratar datos sensibles: el cortafuegos limita adónde se conecta el agente, pero no impide que envíe datos a los destinos permitidos.
 
 Para permitir otros destinos (por ejemplo, la API de un proyecto o un CDN de paquetes):
 

@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 698" width="960" height="698" role="img" aria-labelledby="t d">
+<title id="t">Plano 1: versión escritorio</title>
+<desc id="d">En un PC con Windows, Docker Desktop ejecuta un contenedor por proyecto con Claude Code y OpenCode. Cada uno tiene un cortafuegos de salida que solo deja pasar a Anthropic, npm, PyPI, GitHub, OpenCode y VS Code, y no ve el disco de Windows ni los demás proyectos. El modelo local lo sirve LM Studio en Windows o un contenedor llama.cpp; Open WebUI ofrece un chat con ese modelo. Ninguno de los tres pasa por el cortafuegos.</desc>
+<style>
+svg{--paper:#f2f0eb;--ink:#0a0a0a;--mute:#55534e;--box:#ffffff;--r:#e8341c}
+@media (prefers-color-scheme:dark){svg{--paper:#0a0a0a;--ink:#f2f0eb;--mute:#aeaba3;--box:#171716;--r:#ff4a2e}}
+text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;fill:var(--ink)}
+.D{font-family:"Arial Black","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:900}
+.h1{font-size:34px}.h2{font-size:20px}.h3{font-size:15px}
+.s{fill:var(--mute)}.r{fill:var(--r)}.inv{fill:var(--paper)}.w{fill:#ffffff}.yt{fill:#ffd400}
+.k{font-size:11px;letter-spacing:1.5px;font-weight:700}.k9{font-size:9px;letter-spacing:1px;font-weight:700}
+.c{text-anchor:middle}.e{text-anchor:end}
+.paper{fill:var(--paper)}.ink{fill:var(--ink)}.red{fill:var(--r)}.blk{fill:#0a0a0a}.haz{fill:url(#peligro)}
+.box{fill:var(--box);stroke:var(--ink);stroke-width:3}.rbox{fill:var(--r);stroke:var(--ink);stroke-width:3}
+.zone{fill:none;stroke:var(--ink);stroke-width:3}.zd{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:10 6}
+.lim{fill:var(--box);stroke:var(--ink);stroke-width:4}.sw{stroke:var(--ink);stroke-width:2}
+.f{fill:none;stroke:var(--ink);stroke-width:3}.fr{fill:none;stroke:var(--r);stroke-width:3}.x{fill:none;stroke:var(--r);stroke-width:4}.dash{stroke-dasharray:8 6}
+.tagt{fill:var(--paper);font-size:12px;font-weight:700;text-anchor:middle}
+</style>
+<defs>
+<pattern id="peligro" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="16" height="16" fill="#ffd400"/><rect width="8" height="16" fill="#0a0a0a"/></pattern>
+<marker id="p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" style="fill:var(--ink)"/></marker>
+</defs>
+
+<rect class="paper" width="960" height="698"/>
+
+<!-- Cabecera -->
+<rect class="ink" x="24" y="24" width="44" height="44"/>
+<text class="D h2 inv c" x="46" y="54">01</text>
+<text class="D h1" x="84" y="60">ESCRITORIO</text>
+<rect class="ink" x="776" y="28" width="160" height="36"/>
+<text class="k inv c" x="856" y="51" style="font-size:13px">DISPONIBLE</text>
+<rect class="ink" x="24" y="84" width="912" height="4"/>
+
+<!-- PC con Windows -->
+<rect class="zone" x="24" y="110" width="616" height="452"/>
+<rect class="ink" x="24" y="110" width="134" height="24"/>
+<text class="k inv" x="34" y="126">PC CON WINDOWS</text>
+
+<rect class="ink" x="46" y="166" width="184" height="52"/>
+<rect class="box" x="40" y="160" width="184" height="52"/>
+<text class="D h3" x="52" y="182">INICIAR.CMD</text>
+<text class="s" x="52" y="202">proyectos y menú</text>
+
+<rect class="ink" x="46" y="234" width="184" height="52"/>
+<rect class="box" x="40" y="228" width="184" height="52"/>
+<text class="D h3" x="52" y="250">VS CODE</text>
+<text class="s" x="52" y="270">opcional</text>
+
+<rect class="ink" x="46" y="446" width="184" height="104"/>
+<rect class="box" x="40" y="440" width="184" height="104"/>
+<rect class="haz" x="41.5" y="441.5" width="181" height="16"/>
+<line class="f" x1="40" y1="458" x2="224" y2="458"/>
+<rect class="blk" x="48" y="443" width="110" height="13"/>
+<text class="k9 yt c" x="103" y="453">SIN CORTAFUEGOS</text>
+<text class="D h3" x="52" y="484">LM STUDIO</text>
+<text class="s" x="52" y="504">opcional · GPU · :1234</text>
+<text x="52" y="526">en Windows</text>
+
+<!-- Docker Desktop -->
+<rect class="zd" x="240" y="140" width="384" height="408"/>
+<text class="k s" x="252" y="162">DOCKER DESKTOP · WSL2</text>
+
+<rect class="box" x="264" y="168" width="352" height="236"/>
+<rect class="ink" x="262" y="182" width="352" height="236"/>
+<rect class="lim" x="256" y="176" width="352" height="236"/>
+<rect class="red" x="256" y="176" width="190" height="22"/>
+<text class="k w" x="266" y="191">LÍMITE DEL CONTENEDOR</text>
+<text class="D h2" x="268" y="226">PROYECTO</text>
+<text class="s e" x="596" y="226">uno por proyecto</text>
+<text x="268" y="248">Claude Code · OpenCode</text>
+<text class="s" x="268" y="266">git · gh · Node · Python · menú ia</text>
+<text x="268" y="292">■ usuario sin privilegios</text>
+<text x="268" y="310">■ no ve Windows ni otros proyectos</text>
+<text x="268" y="328">■ sus sesiones y sus puertos</text>
+<text x="268" y="346">■ límites de CPU, memoria y procesos</text>
+<text class="D h3 r" x="268" y="378">CORTAFUEGOS DE SALIDA</text>
+<text class="s" x="268" y="398">lista blanca · si no se aplica, no arranca</text>
+<rect class="red" x="601" y="216" width="14" height="176"/>
+
+<rect class="ink" x="262" y="446" width="160" height="92"/>
+<rect class="box" x="256" y="440" width="160" height="92"/>
+<rect class="haz" x="257.5" y="441.5" width="157" height="16"/>
+<line class="f" x1="256" y1="458" x2="416" y2="458"/>
+<rect class="blk" x="264" y="443" width="110" height="13"/>
+<text class="k9 yt c" x="319" y="453">SIN CORTAFUEGOS</text>
+<text class="D h3" x="268" y="484">LLAMA.CPP</text>
+<text class="s" x="268" y="504">opcional · GPU</text>
+<text class="s" x="268" y="522">:8090</text>
+
+<rect class="ink" x="454" y="446" width="154" height="92"/>
+<rect class="box" x="448" y="440" width="154" height="92"/>
+<rect class="haz" x="449.5" y="441.5" width="151" height="16"/>
+<line class="f" x1="448" y1="458" x2="602" y2="458"/>
+<rect class="blk" x="456" y="443" width="110" height="13"/>
+<text class="k9 yt c" x="511" y="453">SIN CORTAFUEGOS</text>
+<text class="D h3" x="460" y="484">OPEN WEBUI</text>
+<text class="s" x="460" y="504">opcional · chat</text>
+<text class="s" x="460" y="522">:3100</text>
+
+<!-- Internet -->
+<rect class="zone" x="664" y="110" width="272" height="452"/>
+<rect class="ink" x="664" y="110" width="86" height="24"/>
+<text class="k inv" x="674" y="126">INTERNET</text>
+
+<rect class="ink" x="682" y="156" width="248" height="180"/>
+<rect class="box" x="676" y="150" width="248" height="180"/>
+<text class="D h3" x="688" y="176">PERMITIDO</text>
+<text x="688" y="200">Anthropic · Claude</text>
+<text x="688" y="220">npm · PyPI</text>
+<text x="688" y="240">GitHub</text>
+<text x="688" y="260">OpenCode</text>
+<text x="688" y="280">VS Code</text>
+<text class="s" x="688" y="312">+ FIREWALL_ALLOW</text>
+
+<rect class="ink" x="682" y="352" width="248" height="64"/>
+<rect class="rbox" x="676" y="346" width="248" height="64"/>
+<text class="D h3 w" x="688" y="372">BLOQUEADO</text>
+<text class="w" x="688" y="394">todo lo demás</text>
+
+<rect class="ink" x="682" y="446" width="248" height="92"/>
+<rect class="box" x="676" y="440" width="248" height="92"/>
+<text class="D h3" x="688" y="466">HUGGING FACE</text>
+<text class="s" x="688" y="486">descarga de modelos</text>
+
+<!-- Flujos -->
+<path class="f" d="M224,186 H250" marker-end="url(#p)"/>
+<path class="f" d="M224,254 H250" marker-end="url(#p)"/>
+<path class="f" d="M615,240 H668" marker-end="url(#p)"/>
+<path class="fr dash" d="M615,378 H648"/>
+<path class="x" d="M654,370 L668,386 M668,370 L654,386"/>
+<path class="f" d="M336,418 V434" marker-end="url(#p)"/>
+<path class="f" d="M256,368 H232 V496 H228" marker-end="url(#p)"/>
+<path class="f" d="M448,486 H428" marker-end="url(#p)"/>
+<path class="f" d="M336,538 V555 H652 V486 H668" marker-end="url(#p)"/>
+<rect class="ink" x="624" y="230" width="20" height="20"/><text class="tagt" x="634" y="244">1</text>
+<rect class="ink" x="624" y="368" width="20" height="20"/><text class="tagt" x="634" y="382">2</text>
+<rect class="ink" x="346" y="416" width="20" height="20"/><text class="tagt" x="356" y="430">3</text>
+<rect class="ink" x="222" y="420" width="20" height="20"/><text class="tagt" x="232" y="434">3</text>
+<rect class="ink" x="642" y="500" width="20" height="20"/><text class="tagt" x="652" y="514">4</text>
+
+<!-- Leyenda -->
+<rect class="ink" x="24" y="574" width="912" height="4"/>
+<rect class="ink" x="24" y="588" width="20" height="20"/><text class="tagt" x="34" y="602">1</text>
+<text x="52" y="603">salida permitida: Anthropic, npm, PyPI, GitHub…</text>
+<rect class="ink" x="480" y="588" width="20" height="20"/><text class="tagt" x="490" y="602">2</text>
+<text x="508" y="603">cualquier otro destino: bloqueado</text>
+<rect class="ink" x="24" y="614" width="20" height="20"/><text class="tagt" x="34" y="628">3</text>
+<text x="52" y="629">agente → modelo local, sin salir del PC</text>
+<rect class="ink" x="480" y="614" width="20" height="20"/><text class="tagt" x="490" y="628">4</text>
+<text x="508" y="629">llama.cpp → Hugging Face, sin cortafuegos</text>
+<rect class="haz sw" x="24" y="642" width="20" height="16"/>
+<text x="52" y="655">fuera del cortafuegos de los proyectos</text>
+<rect class="red sw" x="480" y="642" width="20" height="16"/>
+<text x="508" y="655">cortafuegos y bloqueos</text>
+<text class="s" x="24" y="684">Open WebUI habla con LM Studio o con llama.cpp. Va en su propia red: no alcanza los proyectos.</text>
+</svg>

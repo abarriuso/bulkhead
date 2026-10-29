@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 572" width="960" height="572" role="img" aria-labelledby="t d">
+<title id="t">Plano 3: qué sale de tu equipo según el modo</title>
+<desc id="d">Conectado (disponible): Claude Code envía tu código y tus instrucciones a Anthropic; con datos sensibles, mejor no. Modelo local (disponible): OpenCode usa un modelo en tu GPU, pero el agente sigue pudiendo subir datos a GitHub y npm; con datos sensibles, con cuidado. Sin internet (en desarrollo): nada cruza el límite de tu equipo; es lo más prudente, aunque protege la red y no todo el equipo.</desc>
+<style>
+svg{--paper:#f2f0eb;--ink:#0a0a0a;--mute:#55534e;--box:#ffffff;--r:#e8341c}
+@media (prefers-color-scheme:dark){svg{--paper:#0a0a0a;--ink:#f2f0eb;--mute:#aeaba3;--box:#171716;--r:#ff4a2e}}
+text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;fill:var(--ink)}
+.D{font-family:"Arial Black","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:900}
+.h1{font-size:34px}.h2{font-size:20px}.h3{font-size:15px}.hv{font-size:22px}
+.s{fill:var(--mute)}.r{fill:var(--r)}.inv{fill:var(--paper)}.k0{fill:#0a0a0a}
+.k{font-size:11px;letter-spacing:1.5px;font-weight:700}
+.c{text-anchor:middle}.e{text-anchor:end}
+.paper{fill:var(--paper)}.ink{fill:var(--ink)}.red{fill:var(--r)}.yel{fill:#ffd400}
+.box{fill:var(--box);stroke:var(--ink);stroke-width:3}.zd{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:10 6}
+.f{fill:none;stroke:var(--ink);stroke-width:3}.x{fill:none;stroke:var(--r);stroke-width:4}.dash{stroke-dasharray:8 6}
+</style>
+<defs>
+<marker id="p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" style="fill:var(--ink)"/></marker>
+</defs>
+
+<rect class="paper" width="960" height="572"/>
+
+<!-- Cabecera -->
+<rect class="ink" x="24" y="24" width="44" height="44"/>
+<text class="D h2 inv c" x="46" y="54">03</text>
+<text class="D h1" x="84" y="60">QUÉ SALE DE TU EQUIPO</text>
+<rect class="ink" x="24" y="84" width="912" height="4"/>
+<line class="f" x1="320" y1="104" x2="320" y2="556"/>
+<line class="f" x1="632" y1="104" x2="632" y2="556"/>
+
+<!-- Conectado -->
+<text class="D h2" x="24" y="134">CONECTADO</text>
+<rect class="ink" x="24" y="146" width="104" height="22"/>
+<text class="k inv" x="34" y="161">DISPONIBLE</text>
+<text class="k" x="24" y="196">INTERNET</text>
+<rect class="ink" x="30" y="212" width="282" height="76"/>
+<rect class="box" x="24" y="206" width="282" height="76"/>
+<text class="D h3" x="36" y="230">ANTHROPIC</text>
+<text class="s" x="36" y="252">recibe tu código e instrucciones</text>
+<text class="s" x="36" y="270">GitHub · npm: lo que suba el agente</text>
+<rect class="red" x="24" y="294" width="288" height="6"/>
+<text class="k r" x="24" y="320">LÍMITE DE TU EQUIPO</text>
+<path class="f" d="M240,336 V292" marker-end="url(#p)"/>
+<rect class="ink" x="30" y="342" width="282" height="40"/>
+<rect class="box" x="24" y="336" width="282" height="40"/>
+<text class="D h3" x="36" y="362">AGENTE</text>
+<text class="s e" x="294" y="362">Claude Code</text>
+<text class="s" x="24" y="440">el modelo (Claude) está en Anthropic</text>
+<rect class="ink" x="24" y="474" width="288" height="3"/>
+<text class="k" x="24" y="498">DATOS SENSIBLES</text>
+<text class="D hv r" x="24" y="528">MEJOR NO</text>
+<text class="s" x="24" y="552">Tu código sale hacia Anthropic.</text>
+
+<!-- Modelo local -->
+<text class="D h2" x="336" y="134">MODELO LOCAL</text>
+<rect class="ink" x="336" y="146" width="104" height="22"/>
+<text class="k inv" x="346" y="161">DISPONIBLE</text>
+<text class="k" x="336" y="196">INTERNET</text>
+<rect class="ink" x="342" y="212" width="282" height="76"/>
+<rect class="box" x="336" y="206" width="282" height="76"/>
+<text class="D h3" x="348" y="230">GITHUB · NPM</text>
+<text class="s" x="348" y="252">siguen permitidos</text>
+<text class="s" x="348" y="270">llama.cpp descarga modelos</text>
+<rect class="red" x="336" y="294" width="288" height="6"/>
+<text class="k r" x="336" y="320">LÍMITE DE TU EQUIPO</text>
+<path class="f dash" d="M552,336 V292" marker-end="url(#p)"/>
+<rect class="ink" x="342" y="342" width="282" height="40"/>
+<rect class="box" x="336" y="336" width="282" height="40"/>
+<text class="D h3" x="348" y="362">AGENTE</text>
+<text class="s e" x="606" y="362">OpenCode</text>
+<line class="f" x1="552" y1="382" x2="552" y2="414"/>
+<rect class="ink" x="342" y="420" width="282" height="40"/>
+<rect class="box" x="336" y="414" width="282" height="40"/>
+<text class="D h3" x="348" y="440">MODELO LOCAL</text>
+<text class="s e" x="606" y="440">en tu GPU</text>
+<rect class="ink" x="336" y="474" width="288" height="3"/>
+<text class="k" x="336" y="498">DATOS SENSIBLES</text>
+<text class="D hv" x="336" y="528">CON CUIDADO</text>
+<text class="s" x="336" y="552">El agente aún puede subir a GitHub.</text>
+
+<!-- Sin internet -->
+<text class="D h2" x="648" y="134">SIN INTERNET</text>
+<rect class="yel" x="648" y="146" width="126" height="22"/>
+<text class="k k0" x="658" y="161">EN DESARROLLO</text>
+<text class="k" x="648" y="196">INTERNET</text>
+<rect class="zd" x="648" y="206" width="282" height="76"/>
+<text class="D h3 s" x="660" y="230">SIN CONEXIÓN</text>
+<text class="s" x="660" y="252">ni el agente ni el modelo</text>
+<text class="s" x="660" y="270">salen a la red</text>
+<rect class="red" x="648" y="294" width="288" height="6"/>
+<text class="k r" x="648" y="320">LÍMITE DE TU EQUIPO</text>
+<line class="f" x1="864" y1="336" x2="864" y2="310"/>
+<path class="x" d="M856,289 L872,305 M872,289 L856,305"/>
+<rect class="ink" x="654" y="342" width="282" height="40"/>
+<rect class="box" x="648" y="336" width="282" height="40"/>
+<text class="D h3" x="660" y="362">AGENTE</text>
+<text class="s e" x="918" y="362">OpenCode</text>
+<line class="f" x1="864" y1="382" x2="864" y2="414"/>
+<text class="s e" x="852" y="402">red interna</text>
+<rect class="ink" x="654" y="420" width="282" height="40"/>
+<rect class="box" x="648" y="414" width="282" height="40"/>
+<text class="D h3" x="660" y="440">MODELO LOCAL</text>
+<text class="s e" x="918" y="440">en tu GPU</text>
+<rect class="ink" x="648" y="474" width="288" height="3"/>
+<text class="k" x="648" y="498">DATOS SENSIBLES</text>
+<text class="D hv" x="648" y="528">LO MÁS PRUDENTE</text>
+<text class="s" x="648" y="552">Protege la red, no todo el equipo.</text>
+</svg>

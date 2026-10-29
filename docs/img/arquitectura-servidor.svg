@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 716" width="960" height="716" role="img" aria-labelledby="t d">
+<title id="t">Plano 2: versión servidor (en desarrollo)</title>
+<desc id="d">Diseño previsto, todavía no disponible. Tus dispositivos se conectan por Tailscale a una VM Linux en un nodo Proxmox. En la VM hay una instancia por proyecto, cada una con su cortafuegos, sus volúmenes y sus sesiones. Todas usan un modelo local compartido a través de redes internas sin salida a internet, una por instancia. Un descargador aparte es lo único que sale a Hugging Face.</desc>
+<style>
+svg{--paper:#f2f0eb;--ink:#0a0a0a;--mute:#55534e;--box:#ffffff;--r:#e8341c}
+@media (prefers-color-scheme:dark){svg{--paper:#0a0a0a;--ink:#f2f0eb;--mute:#aeaba3;--box:#171716;--r:#ff4a2e}}
+text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;fill:var(--ink)}
+.D{font-family:"Arial Black","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:900}
+.h1{font-size:34px}.h2{font-size:20px}.h3{font-size:15px}.id{font-size:15px;font-weight:700}
+.s{fill:var(--mute)}.r{fill:var(--r)}.inv{fill:var(--paper)}.w{fill:#ffffff}.yt{fill:#ffd400}.k0{fill:#0a0a0a}
+.k{font-size:11px;letter-spacing:1.5px;font-weight:700}.k9{font-size:9px;letter-spacing:1px;font-weight:700}
+.c{text-anchor:middle}.e{text-anchor:end}
+.paper{fill:var(--paper)}.ink{fill:var(--ink)}.red{fill:var(--r)}.blk{fill:#0a0a0a}.yel{fill:#ffd400}.haz{fill:url(#peligro)}
+.box{fill:var(--box);stroke:var(--ink);stroke-width:3}
+.zone{fill:none;stroke:var(--ink);stroke-width:3}.zd{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:10 6}
+.lim{fill:var(--box);stroke:var(--ink);stroke-width:4}.sw{stroke:var(--ink);stroke-width:2}
+.f{fill:none;stroke:var(--ink);stroke-width:3}.dot{stroke-dasharray:3 6}
+.tagt{fill:var(--paper);font-size:12px;font-weight:700;text-anchor:middle}
+</style>
+<defs>
+<pattern id="peligro" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="16" height="16" fill="#ffd400"/><rect width="8" height="16" fill="#0a0a0a"/></pattern>
+<marker id="p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" style="fill:var(--ink)"/></marker>
+</defs>
+
+<rect class="paper" width="960" height="716"/>
+
+<!-- Cabecera -->
+<rect class="ink" x="24" y="24" width="44" height="44"/>
+<text class="D h2 inv c" x="46" y="54">02</text>
+<text class="D h1" x="84" y="60">SERVIDOR</text>
+<rect class="yel" x="766" y="28" width="170" height="36"/>
+<text class="k k0 c" x="851" y="51" style="font-size:13px">EN DESARROLLO</text>
+<rect class="ink" x="24" y="84" width="912" height="4"/>
+
+<!-- Internet -->
+<rect class="zone" x="232" y="106" width="704" height="44"/>
+<rect class="ink" x="232" y="106" width="96" height="44"/>
+<text class="k inv" x="242" y="133">INTERNET</text>
+<text class="s" x="340" y="133">cada instancia: su lista blanca · descargador: solo Hugging Face</text>
+
+<!-- Dispositivos -->
+<text class="k" x="24" y="186">TUS DISPOSITIVOS</text>
+<rect class="ink" x="30" y="210" width="168" height="36"/>
+<rect class="box" x="24" y="204" width="168" height="36"/>
+<text class="D h3" x="36" y="228">PORTÁTIL</text><text class="s e" x="180" y="228">SSH</text>
+<rect class="ink" x="30" y="258" width="168" height="36"/>
+<rect class="box" x="24" y="252" width="168" height="36"/>
+<text class="D h3" x="36" y="276">PC</text><text class="s e" x="180" y="276">SSH</text>
+<rect class="ink" x="30" y="306" width="168" height="36"/>
+<rect class="box" x="24" y="300" width="168" height="36"/>
+<text class="D h3" x="36" y="324">MÓVIL</text><text class="s e" x="180" y="324">navegador</text>
+<path class="f" d="M198,222 H210 M198,270 H210 M198,318 H210 M210,222 V318"/>
+<path class="f" d="M210,270 H243" marker-end="url(#p)"/>
+<rect class="ink" x="212" y="280" width="20" height="20"/><text class="tagt" x="222" y="294">4</text>
+
+<text class="k" x="24" y="372">TAILSCALE</text>
+<text class="s" x="24" y="392">red privada entre</text>
+<text class="s" x="24" y="410">tus dispositivos,</text>
+<text class="s" x="24" y="428">sin abrir puertos</text>
+
+<text class="k" x="24" y="470">A TENER EN CUENTA</text>
+<text class="s" x="24" y="490">■ tú mantienes el</text>
+<text class="s" x="24" y="508">  servidor: copias y</text>
+<text class="s" x="24" y="526">  actualizaciones</text>
+<text class="s" x="24" y="548">■ el acceso remoto</text>
+<text class="s" x="24" y="566">  añade superficie</text>
+<text class="s" x="24" y="584">  de ataque</text>
+
+<!-- Proxmox y VM -->
+<rect class="zone" x="232" y="166" width="704" height="416"/>
+<rect class="ink" x="232" y="166" width="120" height="24"/>
+<text class="k inv" x="242" y="182">NODO PROXMOX</text>
+<rect class="zd" x="248" y="200" width="672" height="366"/>
+<text class="k s" x="260" y="222">VM LINUX</text>
+
+<!-- Instancias -->
+<rect class="ink" x="270" y="242" width="200" height="136"/>
+<rect class="lim" x="264" y="236" width="200" height="136"/>
+<rect class="red" x="372" y="228" width="88" height="16"/>
+<text class="k9 w c" x="416" y="240">CORTAFUEGOS</text>
+<text class="id" x="276" y="270">ia-trabajo</text>
+<text x="276" y="292">Claude Code · OpenCode</text>
+<text class="s" x="276" y="314">■ volúmenes propios</text>
+<text class="s" x="276" y="332">■ sesiones propias</text>
+<text class="s" x="276" y="350">■ límites propios</text>
+
+<rect class="ink" x="486" y="242" width="200" height="136"/>
+<rect class="lim" x="480" y="236" width="200" height="136"/>
+<rect class="red" x="588" y="228" width="88" height="16"/>
+<text class="k9 w c" x="632" y="240">CORTAFUEGOS</text>
+<text class="id" x="492" y="270">ia-personal</text>
+<text x="492" y="292">Claude Code · OpenCode</text>
+<text class="s" x="492" y="314">■ volúmenes propios</text>
+<text class="s" x="492" y="332">■ sesiones propias</text>
+<text class="s" x="492" y="350">■ límites propios</text>
+
+<rect class="ink" x="702" y="242" width="200" height="136"/>
+<rect class="lim" x="696" y="236" width="200" height="136"/>
+<rect class="red" x="804" y="228" width="88" height="16"/>
+<text class="k9 w c" x="848" y="240">CORTAFUEGOS</text>
+<text class="id" x="708" y="270">ia-&lt;proyecto&gt;</text>
+<text class="s" x="708" y="292">■ una por proyecto</text>
+<text class="s" x="708" y="310">■ con un solo comando</text>
+
+<path class="f" d="M416,228 V156" marker-end="url(#p)"/>
+<path class="f" d="M632,228 V156" marker-end="url(#p)"/>
+<path class="f" d="M848,228 V156" marker-end="url(#p)"/>
+<rect class="ink" x="406" y="170" width="20" height="20"/><text class="tagt" x="416" y="184">1</text>
+<rect class="ink" x="622" y="170" width="20" height="20"/><text class="tagt" x="632" y="184">1</text>
+<rect class="ink" x="838" y="170" width="20" height="20"/><text class="tagt" x="848" y="184">1</text>
+
+<!-- Redes internas -->
+<path class="f dot" d="M364,378 V418" marker-end="url(#p)"/>
+<path class="f dot" d="M580,378 V418" marker-end="url(#p)"/>
+<path class="f dot" d="M796,378 V396 H640 V418" marker-end="url(#p)"/>
+<rect class="ink" x="354" y="388" width="20" height="20"/><text class="tagt" x="364" y="402">2</text>
+<rect class="ink" x="570" y="388" width="20" height="20"/><text class="tagt" x="580" y="402">2</text>
+<rect class="ink" x="700" y="386" width="20" height="20"/><text class="tagt" x="710" y="400">2</text>
+
+<!-- Modelo compartido -->
+<rect class="ink" x="270" y="430" width="400" height="126"/>
+<rect class="box" x="264" y="424" width="400" height="126"/>
+<text class="D h3" x="276" y="456">MODELO COMPARTIDO</text>
+<text x="276" y="476">llama.cpp · GPU del nodo</text>
+<text class="s" x="276" y="500">■ lee el modelo en solo lectura</text>
+<text class="s" x="276" y="518">■ una red interna por instancia:</text>
+<text class="s" x="276" y="536">  no se ven entre sí</text>
+<rect class="ink" x="548" y="528" width="116" height="22"/>
+<text class="k inv" x="558" y="543">SIN INTERNET</text>
+
+<!-- Descargador -->
+<rect class="ink" x="702" y="430" width="200" height="126"/>
+<rect class="box" x="696" y="424" width="200" height="126"/>
+<rect class="haz" x="697.5" y="425.5" width="197" height="16"/>
+<line class="f" x1="696" y1="442" x2="896" y2="442"/>
+<rect class="blk" x="704" y="427" width="90" height="13"/>
+<text class="k9 yt c" x="749" y="437">CON INTERNET</text>
+<text class="D h3" x="708" y="468">DESCARGADOR</text>
+<text x="708" y="488">al cambiar de modelo</text>
+<text class="s" x="708" y="510">■ solo Hugging Face</text>
+<text class="s" x="708" y="528">■ escribe en el volumen</text>
+<path class="f" d="M696,487 H675" marker-end="url(#p)"/>
+<path class="f" d="M902,440 H910 V156" marker-end="url(#p)"/>
+<rect class="ink" x="900" y="280" width="20" height="20"/><text class="tagt" x="910" y="294">3</text>
+
+<!-- Leyenda -->
+<rect class="ink" x="24" y="594" width="912" height="4"/>
+<rect class="ink" x="24" y="608" width="20" height="20"/><text class="tagt" x="34" y="622">1</text>
+<text x="52" y="623">salida de cada instancia: su lista blanca</text>
+<rect class="ink" x="480" y="608" width="20" height="20"/><text class="tagt" x="490" y="622">2</text>
+<text x="508" y="623">instancia ↔ modelo: red interna, sin internet</text>
+<rect class="ink" x="24" y="634" width="20" height="20"/><text class="tagt" x="34" y="648">3</text>
+<text x="52" y="649">descargador → Hugging Face, y nada más</text>
+<rect class="ink" x="480" y="634" width="20" height="20"/><text class="tagt" x="490" y="648">4</text>
+<text x="508" y="649">tus dispositivos → VM, por Tailscale</text>
+<rect class="haz sw" x="24" y="662" width="20" height="16"/>
+<text x="52" y="675">fuera del cortafuegos de las instancias</text>
+<rect class="red sw" x="480" y="662" width="20" height="16"/>
+<text x="508" y="675">cortafuegos de cada instancia</text>
+<text class="s" x="24" y="702">Diseño previsto: todavía no está publicado. Sin GPU en el nodo, se puede usar la de tu PC por la red.</text>
+</svg>
