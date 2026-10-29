@@ -49,6 +49,22 @@ jobs:
           ANTHROPIC_API_KEY: ""
         run: docker compose --profile llamacpp --profile openwebui config -q
 
+  # iniciar.ps1 se ejecuta con el PowerShell 5.1 que trae Windows, no con pwsh.
+  windows-powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: iniciar.ps1 se analiza sin errores en Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $PSVersionTable.PSVersion
+          $err = $null; $tok = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\iniciar.ps1", [ref]$tok, [ref]$err)
+          $err | ForEach-Object { $_.ToString() }
+          if ($err) { exit 1 }
+
   build-and-test:
     runs-on: ubuntu-latest
     needs: lint
@@ -180,6 +196,12 @@ jobs:
           docker rm -f $prueba
           docker volume rm entorno-ia-prueba_workspace entorno-ia-prueba_home
           docker exec -u node $general test -e /home/node/marca
+      - name: Open WebUI arranca y no alcanza los proyectos
+        run: |
+          docker compose --profile openwebui up -d --wait openwebui
+          curl -sf --max-time 10 -o /dev/null http://127.0.0.1:3100/health
+          test "$(docker inspect -f '{{range $n, $_ := .NetworkSettings.Networks}}{{$n}} {{end}}' entorno-ia-openwebui-1)" = "entorno-ia_chat "
+          ! docker compose exec -T openwebui curl -s --max-time 5 -o /dev/null http://entorno-ia-workspace-1:8080 || exit 1
       # Se publica exactamente la imagen que ha pasado las pruebas, para que
       # iniciar.cmd la descargue en vez de construirla.
       - name: Publicar la imagen probada
@@ -199,4 +221,4 @@ jobs:
         if: always()
         run: |
           docker rm -f entorno-ia-prueba-workspace-1 || true
-          docker compose down -v
+          docker compose --profile openwebui down -v
