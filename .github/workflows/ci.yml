@@ -231,7 +231,8 @@ jobs:
           # Un servidor de desarrollo se abre desde el PC, pero no desde otro proyecto.
           docker exec -d -u node -w /workspace $general python3 -m http.server 8080 --bind 0.0.0.0
           curl -sf --max-time 5 --retry 15 --retry-delay 1 --retry-all-errors -o /dev/null http://127.0.0.1:8080
-          ! docker exec -u node $prueba curl -s --max-time 5 -o /dev/null http://$general:8080 || exit 1
+          ! docker exec -u node $prueba curl -s --noproxy "*" --max-time 5 -o /dev/null http://$general:8080 || exit 1
+          ! docker exec -u node $prueba curl -sf --max-time 5 -o /dev/null http://$general:8080 || exit 1
           # Proyecto nuevo con plantilla para los agentes.
           docker exec -u node -w /workspace $prueba ia preparar
           docker exec -u node $prueba grep -q '^# prueba' /workspace/CLAUDE.md
