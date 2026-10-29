@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 572" width="960" height="572" role="img" aria-labelledby="t d">
 <title id="t">Plano 3: qué sale de tu equipo según el modo</title>
-<desc id="d">Conectado (disponible): Claude Code envía tu código y tus instrucciones a Anthropic; con datos sensibles, mejor no. Modelo local (disponible): OpenCode usa un modelo en tu GPU, pero el agente sigue pudiendo subir datos a GitHub y npm; con datos sensibles, con cuidado. Sin internet (en desarrollo): nada cruza el límite de tu equipo; es lo más prudente, aunque protege la red y no todo el equipo.</desc>
+<desc id="d">Conectado (disponible): Claude Code envía tu código y tus instrucciones a Anthropic; con datos sensibles, mejor no. Modelo local (disponible): OpenCode u Open WebUI usan un modelo en tu GPU, pero el contenedor del proyecto sigue pudiendo subir datos a GitHub y npm; con datos sensibles, con cuidado. Sin internet (en desarrollo): nada cruza el límite de tu equipo; es lo más prudente, aunque protege la red y no todo el equipo.</desc>
 <style>
 svg{--paper:#f2f0eb;--ink:#0a0a0a;--mute:#55534e;--box:#ffffff;--r:#e8341c}
 @media (prefers-color-scheme:dark){svg{--paper:#0a0a0a;--ink:#f2f0eb;--mute:#aeaba3;--box:#171716;--r:#ff4a2e}}
@@ -66,8 +66,8 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 <path class="f dash" d="M552,336 V292" marker-end="url(#p)"/>
 <rect class="ink" x="342" y="342" width="282" height="40"/>
 <rect class="box" x="336" y="336" width="282" height="40"/>
-<text class="D h3" x="348" y="362">AGENTE</text>
-<text class="s e" x="606" y="362">OpenCode</text>
+<text class="D h3" x="348" y="362">OPENCODE</text>
+<text class="s e" x="606" y="362">u Open WebUI</text>
 <line class="f" x1="552" y1="382" x2="552" y2="414"/>
 <rect class="ink" x="342" y="420" width="282" height="40"/>
 <rect class="box" x="336" y="414" width="282" height="40"/>

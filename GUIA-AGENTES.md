@@ -88,7 +88,8 @@ Git guarda versiones de tu proyecto. Con agentes es imprescindible porque permit
 |---|---|---|
 | Claude Code con tu cuenta | Lo más capaz y lo más usado. Para casi todo | Incluido en Claude Pro, Max o Team |
 | Claude Code con API | Uso puntual o automatizado, sin suscripción | Pago por uso |
-| OpenCode local | Que tus instrucciones no salgan de tu PC. Tareas sencillas | Gratis (usa tu tarjeta gráfica) |
+| Modelo local con OpenCode | Agente cuyas instrucciones no salen de tu PC. Tareas sencillas | Gratis (usa tu tarjeta gráfica) |
+| Modelo local con Open WebUI | Chat en el navegador para preguntar, redactar o resumir. No es un agente: no toca el proyecto | Gratis (usa tu tarjeta gráfica) |
 
 Los modelos locales son bastante menos capaces que los de la nube: úsalos para tareas acotadas y con un `CLAUDE.md` claro.
 
