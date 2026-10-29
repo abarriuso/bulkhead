@@ -1,6 +1,6 @@
 # bulkhead
 
-Agentes de IA de programación en Windows sin darles acceso al resto de tu ordenador: **Claude Code** con tu cuenta de Anthropic y **OpenCode** con un modelo local en tu propia GPU. Cada proyecto va en su propio contenedor de Docker, protegido por un cortafuegos. Solo hace falta instalar Docker Desktop.
+IA en Windows sin darle acceso al resto de tu ordenador: **Claude Code** con tu cuenta de Anthropic y **modelos locales** que corren en tu propia GPU. Los modelos locales se usan como agente, con OpenCode dentro de un proyecto, o como chat en el navegador, con Open WebUI. Cada proyecto va en su propio contenedor de Docker, protegido por un cortafuegos. Solo hace falta instalar Docker Desktop.
 
 > [!NOTE]
 > Proyecto personal que mantiene una sola persona. Funciona y tiene pruebas automáticas, pero nadie lo ha auditado. Antes de usarlo con algo importante, lee [qué protege y qué no](#qué-protege-y-qué-no).
@@ -23,8 +23,9 @@ Para usarlo en tu propio PC.
 
 - Un contenedor por proyecto, con sus archivos, sesiones y puertos
 - Claude Code: con tu suscripción, en modo autónomo o con clave de API
-- OpenCode con un modelo local (LM Studio o llama.cpp, GPU NVIDIA)
-- Open WebUI, opcional: chat con el modelo local en el navegador
+- Modelos locales en tu GPU NVIDIA, servidos con LM Studio o llama.cpp. Se usan con:
+  - OpenCode: agente dentro del proyecto
+  - Open WebUI: chat en el navegador
 - Cortafuegos de salida en lista blanca
 - `iniciar.cmd`: comprueba la instalación y abre un menú
 - VS Code conectado al proyecto
@@ -32,7 +33,7 @@ Para usarlo en tu propio PC.
 **Limitaciones**
 
 - Lanzador solo para Windows. En Linux funciona sin él; en macOS no se ha probado
-- El modelo local y Open WebUI quedan fuera del cortafuegos
+- El servidor del modelo local y Open WebUI quedan fuera del cortafuegos
 
 </td>
 <td width="50%" valign="top">
@@ -75,8 +76,8 @@ Guía paso a paso, sin comandos: [INSTALACION.md](INSTALACION.md).
 | Modo | Estado | Qué sale de tu equipo | Datos sensibles |
 |---|---|---|---|
 | **Conectado**: Claude Code | Disponible | Tu código y tus instrucciones van a Anthropic, que los trata según las condiciones de tu cuenta. El agente también puede subir cosas a GitHub y descargar de npm y PyPI | Mejor no |
-| **Modelo local**: OpenCode u Open WebUI con LM Studio o llama.cpp | Disponible | Las instrucciones no salen de tu equipo. Pero el contenedor del proyecto sigue pudiendo conectarse a GitHub, npm y PyPI, y llama.cpp descarga modelos de Hugging Face | Con cuidado |
-| **Sin internet**: OpenCode con un modelo local, sin red | En desarrollo | Nada por la red | Lo más prudente, con los [límites](#qué-protege-y-qué-no) de abajo |
+| **Modelo local**: con OpenCode o con Open WebUI | Disponible | Las instrucciones no salen de tu equipo. Pero el contenedor del proyecto sigue pudiendo conectarse a GitHub, npm y PyPI, y llama.cpp descarga modelos de Hugging Face | Con cuidado |
+| **Sin internet**: modelo local, sin red | En desarrollo | Nada por la red | Lo más prudente, con los [límites](#qué-protege-y-qué-no) de abajo |
 
 > [!WARNING]
 > Con el entorno conectado a internet, mejor no tratar datos sensibles: datos personales de otras personas, secretos de empresa, credenciales de producción o información de clientes. El cortafuegos limita adónde se conecta el agente, pero no impide que envíe datos a los destinos permitidos.

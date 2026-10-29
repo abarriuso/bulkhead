@@ -17,7 +17,7 @@
 | Internet | Necesario | — |
 | Cuenta | Claude **Pro, Max o Team**, o una clave de API de Anthropic | No hace falta con un modelo local |
 
-El plan gratuito de Claude no incluye Claude Code. Sin cuenta de pago se puede usar OpenCode con un modelo local (ver más abajo).
+El plan gratuito de Claude no incluye Claude Code. Sin cuenta de pago se puede usar un modelo local, con OpenCode u Open WebUI (ver más abajo).
 
 Docker Desktop es gratuito para uso personal, educativo y empresas de menos de 250 empleados y menos de 10 millones de dólares de facturación anual. Por encima, necesita licencia de pago.
 
@@ -79,7 +79,7 @@ Cada proyecto tiene su propio contenedor, con sus archivos separados de los dem�
 
 Cada proyecto tiene su propia sesión: en cada proyecto nuevo, Claude Code pedirá iniciar sesión la primera vez.
 
-**¿Sin cuenta de pago de Claude?** Con una tarjeta gráfica NVIDIA puedes usar la opción **3** (OpenCode local): ver [Modelo local con LM Studio](#modelo-local-con-lm-studio).
+**¿Sin cuenta de pago de Claude?** Con una tarjeta gráfica NVIDIA puedes usar un modelo local: ver [Modelo local con LM Studio](#modelo-local-con-lm-studio).
 
 ### Las siguientes veces
 
@@ -129,7 +129,7 @@ Resto de variables: [manual de uso](MANUAL.md#9-configuración).
 3. *Discover* → descargar un modelo ([modelos recomendados](MANUAL.md#modelos-recomendados)).
 4. Cargarlo con contexto **32768** y *GPU offload* al máximo.
 5. *Developer* → **Start Server**.
-6. Doble clic en `iniciar.cmd`. En el menú del proyecto, opción **3** (OpenCode local).
+6. Doble clic en `iniciar.cmd`. Para un agente en el proyecto, opción **3** (OpenCode local); para un chat en el navegador, opción **W** (Open WebUI) de la pantalla principal.
 
 ### Modelo local con llama.cpp (sin LM Studio)
 

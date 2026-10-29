@@ -146,12 +146,19 @@ npm run dev -- --host 0.0.0.0 --port 5173     # en el proyecto 1 se abre en http
 
 ## 8. Modelo local
 
+Un modelo local corre en tu tarjeta gráfica: es gratis y tus instrucciones no salen del PC, aunque rinde bastante menos que Claude. Tiene dos partes:
+
+1. **Un servidor que lo carga:** LM Studio (en Windows) o llama.cpp (en Docker). Uno de los dos.
+2. **Una forma de usarlo**, o las dos a la vez:
+   - **OpenCode** (opción **3** del proyecto): agente que trabaja en los archivos del proyecto, como Claude Code.
+   - **Open WebUI** (opción **W** de la pantalla principal): chat en el navegador, sin agente.
+
 ### LM Studio
 
 1. Descargar un modelo en *Discover* (ver tabla de modelos).
 2. Cargarlo con contexto 32768 y *GPU offload* al máximo.
 3. *Developer → Start Server* (puerto 1234).
-4. Arrancar con `.\iniciar.cmd` y usar la opción **3** del proyecto.
+4. Arrancar con `.\iniciar.cmd` y usar OpenCode u Open WebUI.
 
 ### llama.cpp
 
@@ -167,7 +174,7 @@ npm run dev -- --host 0.0.0.0 --port 5173     # en el proyecto 1 se abre en http
 
 ### Open WebUI: chat en el navegador
 
-Una alternativa a OpenCode local para cuando solo quieres hablar con el modelo, sin agente: preguntas, textos, resúmenes o documentos que subas tú. No ve los archivos de tus proyectos.
+Para cuando solo quieres hablar con el modelo, sin agente: preguntas, textos, resúmenes o documentos que subas tú. No ve los archivos de tus proyectos.
 
 1. Tener el modelo local en marcha (LM Studio o llama.cpp).
 2. `iniciar.cmd` → **W**. Se abre en el navegador en http://localhost:3100.
