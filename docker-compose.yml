@@ -10,7 +10,7 @@ name: bulkhead
 
 services:
   workspace:
-    image: ${IMAGEN:-ghcr.io/abarriuso/bulkhead:7}
+    image: ${IMAGEN:-ghcr.io/abarriuso/bulkhead:8}
     build: .
     restart: unless-stopped
     # Solo estas variables de .env entran al contenedor. ANTHROPIC_API_KEY no: llega

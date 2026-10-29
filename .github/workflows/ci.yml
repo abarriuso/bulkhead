@@ -162,6 +162,10 @@ jobs:
           # PyPI pasa por la inspección del proxy: pip tiene que fiarse de su certificado.
           docker compose exec -T -u node workspace sh -c 'python3 -m venv /tmp/v && /tmp/v/bin/pip download -q --no-deps -d /tmp/d six'
           docker compose exec -T -u node workspace git ls-remote https://github.com/abarriuso/bulkhead HEAD
+          # El fetch de Node (programas del proyecto) también sale por el proxy.
+          docker compose exec -T -u node workspace node -e "fetch('https://registry.npmjs.org/').then(r => process.exit(r.ok ? 0 : 1), e => { console.error(e); process.exit(1) })"
+          # Descargas de extensiones de VS Code.
+          docker compose exec -T -u node workspace curl -sS --max-time 10 -o /dev/null https://ms-python.gallerycdn.vsassets.io/
       - name: La clave de API solo la puede leer root
         run: |
           test "$(docker compose exec -T workspace stat -c %U:%a /run/secrets/anthropic_api_key)" = "root:400"
