@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SECRETO=/run/secrets/anthropic_api_key
+
+# La clave de API solo la puede leer root. iniciar.cmd abre como root las opciones que
+# la usan; aquí se lee y se pasa únicamente a esa herramienta, ya como usuario node.
 if [ "$(id -u)" = 0 ]; then
+  case "${1:-}" in
+    5|claude-api)
+      if [ -s "$SECRETO" ]; then ANTHROPIC_API_KEY="$(cat "$SECRETO")"; export ANTHROPIC_API_KEY; fi ;;
+  esac
   exec setpriv --reuid=node --regid=node --init-groups -- "$0" "$@"
 fi
 
 LOCAL_URL="${LOCAL_URL:-http://host.docker.internal:1234}"
 LOCAL_MODEL="${LOCAL_MODEL:-}"
+PLANTILLAS=/usr/local/share/entorno-ia
 
 local_models() { curl -sf --max-time 3 "$LOCAL_URL/v1/models" | jq -r '.data[].id' | grep -viE 'embed' || true; }
 
@@ -28,38 +37,56 @@ need_local_model() {
     [ -n "$LOCAL_MODEL" ] || { echo "No hay ningún modelo cargado"; echo "  → LM Studio: carga uno en la pestaña Developer"; exit 1; }
   elif ! grep -qxF -- "$LOCAL_MODEL" <<<"$models"; then
     echo "Modelo '$LOCAL_MODEL' no disponible. Modelos en el servidor:"; while IFS= read -r m; do echo "  - $m"; done <<<"$models"
-    echo "  → Corrige LOCAL_MODEL en .env (o déjalo vacío) y ejecuta: docker compose up -d"; exit 1
+    echo "  → Corrige LOCAL_MODEL en .env (o déjalo vacío) y vuelve a ejecutar iniciar.cmd"; exit 1
   fi
 }
 
+api_configurada() { [ -n "${ANTHROPIC_API_KEY:-}" ] || [ -s "$SECRETO" ]; }
+
 need_api_key() {
   [ -n "${ANTHROPIC_API_KEY:-}" ] && return
-  echo "Falta ANTHROPIC_API_KEY"
-  echo "  → Añádela en .env y ejecuta en Windows: docker compose up -d"
+  if [ -s "$SECRETO" ]; then
+    echo "La clave de API está configurada, pero por seguridad solo se entrega a las"
+    echo "opciones que la usan. Ábrela desde el menú de iniciar.cmd (opción 7)."
+  else
+    echo "Falta ANTHROPIC_API_KEY"
+    echo "  → Añádela en el archivo .env y vuelve a ejecutar iniciar.cmd"
+  fi
   exit 1
 }
 
 write_opencode_config() {
   mkdir -p "$HOME/.config/opencode"
-  local models='{}'
-  [ -n "$LOCAL_MODEL" ] && models="{\"$LOCAL_MODEL\": {\"name\": \"$LOCAL_MODEL\"}}"
-  cat > "$HOME/.config/opencode/opencode.json" <<EOF
-{
-  "\$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "local": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Modelo local",
-      "options": { "baseURL": "$LOCAL_URL/v1" },
-      "models": $models
+  # Las instrucciones y los permisos vienen de /etc/opencode/opencode.json.
+  jq -n --arg url "$LOCAL_URL/v1" --arg model "$LOCAL_MODEL" '{
+    "$schema": "https://opencode.ai/config.json",
+    provider: {
+      local: {
+        npm: "@ai-sdk/openai-compatible",
+        name: "Modelo local",
+        options: { baseURL: $url },
+        models: (if $model == "" then {} else { ($model): { name: $model } } end)
+      }
     }
-  }
+  }' > "$HOME/.config/opencode/opencode.json"
 }
-EOF
-}
+
+gh_user() { gh config get -h github.com user 2>/dev/null || true; }
 
 claude_suscripcion() {
   exec env -u ANTHROPIC_API_KEY -u ANTHROPIC_BASE_URL -u ANTHROPIC_AUTH_TOKEN claude "$@"
+}
+
+claude_autonomo() {
+  if [ "${FIREWALL:-on}" = "off" ]; then
+    echo "El modo autónomo no está disponible con el cortafuegos desactivado (FIREWALL=off):"
+    echo "Claude podría enviar tus archivos a cualquier sitio sin preguntarte."
+    echo "  → Quita FIREWALL=off del archivo .env y vuelve a abrir el proyecto, o usa la opción 1."
+    [ -t 0 ] && read -rp "Pulsa Enter para cerrar " _
+    exit 1
+  fi
+  exec env -u ANTHROPIC_API_KEY -u ANTHROPIC_BASE_URL -u ANTHROPIC_AUTH_TOKEN \
+    claude --dangerously-skip-permissions "$@"
 }
 
 claude_api() {
@@ -73,13 +100,6 @@ opencode_local() {
   exec env -u ANTHROPIC_API_KEY opencode -m "local/$LOCAL_MODEL" "$@"
 }
 
-opencode_api() {
-  need_api_key
-  write_opencode_config
-  if [ -n "${CLAUDE_MODEL:-}" ]; then exec opencode -m "anthropic/$CLAUDE_MODEL" "$@"; fi
-  exec opencode "$@"
-}
-
 modelos() {
   if ! curl -sf --max-time 3 "$LOCAL_URL/v1/models" >/dev/null; then
     echo "Sin servidor de modelos en $LOCAL_URL"; server_hint; exit 1
@@ -87,14 +107,118 @@ modelos() {
   local_models
 }
 
-ayuda() {
-  cat <<EOF
-Uso: ia [opción] [argumentos de la herramienta]
+github() {
+  local u r
+  u="$(gh_user)"
+  if [ "${1:-}" != "--de-nuevo" ] && [ -n "$u" ] && gh auth status -h github.com >/dev/null 2>&1; then
+    echo "Este proyecto ya está conectado a GitHub como $u."
+    read -rp "¿Conectar de nuevo? (s/N) " r
+    [[ $r == [sS] ]] || return 0
+  fi
+  echo
+  echo "  ¿Cómo quieres conectar GitHub en este proyecto?"
+  echo
+  echo "    1) Rápido: con un código de un solo uso. Da acceso a todos tus repositorios."
+  echo "    2) Limitado: con un token solo para los repositorios que elijas. Recomendado si"
+  echo "       usas el modo autónomo o trabajas con repositorios ajenos."
+  echo
+  read -rp "  > " r
+  case "$r" in
+    2) github_token ;;
+    *) github_codigo ;;
+  esac
+  gh auth setup-git
+  echo
+  echo "Conectado a GitHub como $(gh_user)."
+  echo "Consejo: protege la rama principal de tus repositorios en GitHub (Settings → Rules →"
+  echo "Rulesets: bloquear «force push» y el borrado) para que ningún agente pueda reescribirla."
+}
 
-  ia          menú
-  ia 1        Claude Code con la suscripción
-  ia 3 -c     OpenCode con modelo local, continuando la última sesión
-EOF
+github_codigo() {
+  echo
+  echo "  1. Copia el código que aparece a continuación."
+  echo "  2. Abre https://github.com/login/device en el navegador y pégalo."
+  echo "  3. Si te pregunta por las credenciales de Git, pulsa Enter."
+  echo
+  gh auth login -h github.com -p https -w
+}
+
+github_token() {
+  local token
+  echo
+  echo "  1. Abre https://github.com/settings/personal-access-tokens/new"
+  echo "  2. Ponle un nombre y una caducidad (por ejemplo, 90 días)."
+  echo "  3. En «Repository access» elige «Only select repositories» y marca el"
+  echo "     repositorio de este proyecto."
+  echo "  4. En «Repository permissions» da «Read and write» a «Contents» y a «Pull requests»."
+  echo "  5. Pulsa «Generate token», cópialo y pégalo aquí (no se verá al pegarlo)."
+  echo
+  echo "  Con este token no se pueden crear repositorios nuevos: para eso, usa el modo rápido."
+  echo
+  read -rsp "  Token: " token
+  echo
+  [ -n "$token" ] || { echo "No se ha pegado ningún token."; exit 1; }
+  printf '%s\n' "$token" | gh auth login -h github.com -p https --with-token
+}
+
+preparar() {
+  local url="${1:-}" nombre="${PROYECTO:-proyecto}"
+  cd /workspace
+  if [ -n "$(ls -A)" ]; then
+    echo "El proyecto ya tiene archivos: no se cambia nada."
+    return 0
+  fi
+  if [ -n "$url" ]; then
+    echo "Descargando $url ..."
+    local ok=0
+    if [[ $url != *://* || $url == *github.com* ]] && gh auth status -h github.com >/dev/null 2>&1; then
+      gh repo clone "$url" . && ok=1
+    else
+      GIT_TERMINAL_PROMPT=0 git clone "$url" . && ok=1
+    fi
+    if [ "$ok" = 0 ]; then
+      echo
+      echo "No se pudo descargar el repositorio."
+      echo "  → Si es privado: conecta GitHub y vuelve a intentarlo."
+      echo "  → Si no está en GitHub: añade su dominio a FIREWALL_ALLOW en .env."
+      return 1
+    fi
+    [ -f CLAUDE.md ] || [ -f AGENTS.md ] || echo "Consejo: el proyecto no tiene CLAUDE.md. Pídele a Claude Code: /init"
+  else
+    git init -q -b main
+    sed "s/NOMBRE_PROYECTO/$nombre/" "$PLANTILLAS/CLAUDE.md" > CLAUDE.md
+    cp "$PLANTILLAS/gitignore" .gitignore
+    echo "Proyecto vacío creado, con un CLAUDE.md de plantilla para los agentes."
+  fi
+}
+
+# Copia de otro proyecto lo único que se comparte: la conexión con GitHub. El inicio de
+# sesión de Claude no se copia: su token se renueva y la copia dejaría de valer en uno
+# de los dos proyectos. iniciar.ps1 lo ejecuta en un contenedor sin red con la carpeta
+# personal del otro proyecto montada en $1.
+importar_sesion() {
+  local origen="${1:?}" src
+  umask 077
+  src="$origen/.config/gh/hosts.yml"
+  if [ -f "$src" ] && [ ! -L "$src" ]; then
+    mkdir -p "$HOME/.config/gh"
+    install -m 600 "$src" "$HOME/.config/gh/hosts.yml"
+    gh auth setup-git -h github.com >/dev/null 2>&1 || true
+    echo "  copiado: conexión con GitHub"
+  fi
+}
+
+# Cambios sin subir a GitHub, para avisar antes de borrar un proyecto.
+pendiente() {
+  cd /workspace
+  [ -n "$(ls -A)" ] || return 0
+  if [ ! -d .git ]; then echo "archivos que no están en git"; return 0; fi
+  [ -z "$(git status --porcelain 2>/dev/null)" ] || echo "cambios sin guardar en git (commit)"
+  if [ -z "$(git remote)" ]; then
+    [ -z "$(git rev-parse -q --verify HEAD 2>/dev/null)" ] || echo "commits que no están subidos (sin repositorio remoto)"
+  elif [ -n "$(git log --branches --not --remotes --oneline 2>/dev/null | head -1)" ]; then
+    echo "commits sin subir (push)"
+  fi
 }
 
 estado_local() {
@@ -105,25 +229,44 @@ estado_local() {
   echo "${m:-sin modelo cargado}"
 }
 
+ayuda() {
+  cat <<EOF
+Uso: ia [comando] [argumentos para la herramienta]
+
+  ia               menú
+  ia claude        Claude Code con tu cuenta de Claude
+  ia auto          Claude Code autónomo (no pide permiso; solo con proyectos de confianza)
+  ia local         OpenCode con el modelo local (LM Studio o llama.cpp)
+  ia claude-api    Claude Code con ANTHROPIC_API_KEY
+  ia modelos       lista los modelos locales
+  ia github        conecta tu cuenta de GitHub
+
+Ejemplo: ia claude -c   (continúa la última conversación)
+EOF
+}
+
 opcion="${1:-}"
 [ $# -gt 0 ] && shift
 
 if [ -z "$opcion" ]; then
-  [ -n "${ANTHROPIC_API_KEY:-}" ] && api="configurada" || api="sin configurar"
+  if [ -n "${ANTHROPIC_API_KEY:-}" ]; then api="configurada"
+  elif api_configurada; then api="configurada (solo desde el menú de iniciar.cmd)"
+  else api="sin configurar"; fi
+  gh="$(gh_user)"
   cat <<EOF
 
-  Modelo local: $(estado_local)
-  API Anthropic: $api
+  Proyecto: ${PROYECTO:-general}
+  Modelo local: $(estado_local)  ·  API Anthropic: $api  ·  GitHub: ${gh:-sin conectar}
 
-  Claude Code
-    1) Suscripción Claude
-    2) API Anthropic
+  TRABAJAR CON IA
+    1) Claude Code             con tu cuenta de Claude
+    2) Claude Code autónomo    no pide permiso; solo con proyectos de confianza
+    3) OpenCode local          con el modelo de LM Studio o llama.cpp
 
-  OpenCode
-    3) Modelo local
-    4) API Anthropic
-
-    5) Modelos locales
+  OTROS
+    4) Conectar GitHub
+    5) Claude Code con clave de API
+    6) Ver modelos locales
     0) Salir
 
 EOF
@@ -131,14 +274,18 @@ EOF
 fi
 
 case "$opcion" in
-  1) claude_suscripcion "$@" ;;
-  2) claude_api "$@" ;;
-  3) opencode_local "$@" ;;
-  4) opencode_api "$@" ;;
-  5) modelos ;;
+  1|claude)       claude_suscripcion "$@" ;;
+  2|auto)         claude_autonomo "$@" ;;
+  3|local|opencode) opencode_local "$@" ;;
+  4|github)       github "$@" ;;
+  5|claude-api)   claude_api "$@" ;;
+  6|modelos)      modelos ;;
+  preparar)       preparar "$@" ;;
+  importar-sesion) importar_sesion "$@" ;;
+  pendiente)      pendiente ;;
   --estado)
-    [ -n "${ANTHROPIC_API_KEY:-}" ] && api="configurada" || api="sin configurar"
-    echo "$(estado_local)|$api" ;;
+    api_configurada && api="configurada" || api="sin configurar"
+    echo "$(estado_local)|$api|$(gh_user)" ;;
   -h|--help|help) ayuda ;;
   0|"") exit 0 ;;
   *) echo "Opción no válida: $opcion"; ayuda; exit 1 ;;

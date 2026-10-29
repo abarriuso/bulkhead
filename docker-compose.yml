@@ -1,14 +1,38 @@
+# Cada proyecto es un proyecto de Compose distinto ("entorno-ia-<nombre>") con su
+# propio contenedor, su volumen de código (<proyecto>_workspace) y su carpeta personal
+# (<proyecto>_home: sesiones y configuración de Claude, OpenCode, GitHub y VS Code), para
+# que lo que un agente deje en un proyecto no afecte a otro. Comparten la imagen, los
+# modelos y la red, para que llama.cpp sea accesible desde todos. El cortafuegos impide
+# que un proyecto se conecte a otro.
+# iniciar.ps1 lo gestiona; "docker compose up" sin más arranca el proyecto "general".
 name: entorno-ia
 
 services:
   workspace:
+    image: ${IMAGEN:-ghcr.io/abarriuso/claude-code-local-llm-docker:latest}
     build: .
     restart: unless-stopped
-    env_file:
-      - path: .env
-        required: false
+    # Solo estas variables de .env entran al contenedor. ANTHROPIC_API_KEY no: llega
+    # como secreto que solo puede leer root, y "ia" se la da a las opciones que la usan.
     environment:
       DISABLE_AUTOUPDATER: "1"
+      PROYECTO: ${PROYECTO:-general}
+      LOCAL_URL: ${LOCAL_URL:-http://host.docker.internal:1234}
+      LOCAL_MODEL: ${LOCAL_MODEL:-}
+      GIT_USER_NAME: ${GIT_USER_NAME:-}
+      GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
+      FIREWALL: ${FIREWALL:-on}
+      FIREWALL_ALLOW: ${FIREWALL_ALLOW:-}
+    # Compose avisa de que "mode" no se admite fuera de Swarm, pero con secretos de
+    # tipo environment lo aplica; entrypoint.sh lo comprueba igualmente.
+    secrets:
+      - source: anthropic_api_key
+        mode: 0400
+    labels:
+      entorno-ia: workspace
+      # Huella de la clave (la calcula iniciar.ps1): si la clave cambia, el contenedor
+      # se recrea y recibe la nueva. Compose no lo hace solo con un cambio de secreto.
+      entorno-ia.clave: ${CLAVE_HUELLA:-}
     cap_drop: [ALL]
     cap_add: [NET_ADMIN, NET_RAW, SETUID, SETGID]
     security_opt:
@@ -22,15 +46,17 @@ services:
       - home:/home/node
       - workspace:/workspace
     ports:
-      - "127.0.0.1:3000:3000"
-      - "127.0.0.1:5173:5173"
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${PUERTO_3000:-3000}:3000"
+      - "127.0.0.1:${PUERTO_5173:-5173}:5173"
+      - "127.0.0.1:${PUERTO_8080:-8080}:8080"
     init: true
 
   llamacpp:
     image: ghcr.io/ggml-org/llama.cpp:server-cuda
     profiles: ["llamacpp"]
     restart: unless-stopped
+    labels:
+      entorno-ia: llamacpp
     environment:
       LLAMA_ARG_HF_REPO: ${LLAMACPP_HF_REPO:-unsloth/Qwen3.5-9B-GGUF:Q4_K_M}
       LLAMA_ARG_ALIAS: modelo-local
@@ -38,8 +64,15 @@ services:
       LLAMA_ARG_CPU_MOE: ${LLAMACPP_CPU_MOE:-false}
       LLAMA_ARG_MMPROJ_AUTO: "false"
       LLAMA_ARG_HOST: 0.0.0.0
-      LLAMA_ARG_PORT: "8080"
+      LLAMA_ARG_PORT: "8090"
       LLAMA_CACHE: /models
+    # La imagen comprueba el puerto 8080; aquí escucha en el 8090. La primera vez
+    # descarga el modelo, de ahí el margen largo.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 30s
+      start_period: 10m
+    networks: [default, chat]
     volumes:
       - models:/models
     deploy:
@@ -50,7 +83,47 @@ services:
               count: all
               capabilities: [gpu]
 
+  # Chat con el modelo local en el navegador. Es una alternativa a OpenCode local, no un
+  # agente: no ve los proyectos. Sin descargas, sin comprobar versiones y sin compartir
+  # chats; la telemetría ya viene apagada en la imagen. No pasa por el cortafuegos de los
+  # proyectos, pero va en su propia red: solo alcanza el modelo, no los proyectos.
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:v0.12.4
+    profiles: ["openwebui"]
+    restart: unless-stopped
+    labels:
+      entorno-ia: openwebui
+    environment:
+      OPENAI_API_BASE_URL: ${LOCAL_URL:-http://host.docker.internal:1234}/v1
+      OPENAI_API_KEY: local
+      ENABLE_OLLAMA_API: "false"
+      OFFLINE_MODE: "true"
+      ENABLE_COMMUNITY_SHARING: "false"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks: [chat]
+    volumes:
+      - openwebui:/app/backend/data
+    ports:
+      - "127.0.0.1:3100:8080"
+
+secrets:
+  anthropic_api_key:
+    environment: ANTHROPIC_API_KEY
+
+networks:
+  default:
+    name: entorno-ia_default
+  chat:
+    name: entorno-ia_chat
+
 volumes:
   home:
   workspace:
   models:
+    name: entorno-ia_models
+  openwebui:
+    name: entorno-ia_openwebui

@@ -1,0 +1,17 @@
+{
+  "allowManagedHooksOnly": true,
+  "enableAllProjectMcpServers": false,
+  "allowedMcpServers": [],
+  "env": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(//run/secrets/**)"
+    ]
+  }
+}

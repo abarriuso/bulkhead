@@ -15,9 +15,9 @@
 | Espacio libre en disco | 15 GB | 30 GB |
 | Procesador | Con virtualización (casi todos desde 2015) | — |
 | Internet | Necesario | — |
-| Cuenta | Claude **Pro, Max o Team**, o una clave de API de Anthropic | — |
+| Cuenta | Claude **Pro, Max o Team**, o una clave de API de Anthropic | No hace falta con un modelo local |
 
-El plan gratuito de Claude no incluye Claude Code.
+El plan gratuito de Claude no incluye Claude Code. Sin cuenta de pago se puede usar OpenCode con un modelo local (ver más abajo).
 
 Docker Desktop es gratuito para uso personal, educativo y empresas de menos de 250 empleados y menos de 10 millones de dólares de facturación anual. Por encima, necesita licencia de pago.
 
@@ -61,18 +61,32 @@ Sin comandos. Tiempo total: unos 20 minutos.
 1. Abrir la carpeta extraída.
 2. **Doble clic en `iniciar.cmd`.**
 3. Si aparece *"Windows protegió su PC"*: **Más información** → **Ejecutar de todas formas**.
-4. Esperar a que aparezca el menú. La primera vez tarda unos minutos.
+4. Esperar a que aparezca el menú. La primera vez descarga el entorno (cerca de 1 GB) y tarda unos minutos.
 
-### Paso 4. Iniciar sesión en Claude
+### Paso 4. Crear el primer proyecto
 
-1. En el menú, escribir **1** y pulsar Enter.
+1. En el menú, escribir **N** y pulsar Enter.
+2. Escribir un nombre corto, por ejemplo `prueba`.
+3. Pulsar Enter para empezar un proyecto vacío (o pegar la dirección de un repositorio de GitHub).
+
+Cada proyecto tiene su propio contenedor, con sus archivos separados de los demás.
+
+### Paso 5. Iniciar sesión en Claude
+
+1. En el menú del proyecto, escribir **1** (Claude Code) y pulsar Enter. Se abre en una pestaña nueva.
 2. Aparece un enlace: copiarlo, abrirlo en el navegador e iniciar sesión con la cuenta de Claude.
 3. Copiar el código que muestra la web y pegarlo en la ventana negra (clic derecho para pegar).
+
+Cada proyecto tiene su propia sesión: en cada proyecto nuevo, Claude Code pedirá iniciar sesión la primera vez.
+
+**¿Sin cuenta de pago de Claude?** Con una tarjeta gráfica NVIDIA puedes usar la opción **3** (OpenCode local): ver [Modelo local con LM Studio](#modelo-local-con-lm-studio).
 
 ### Las siguientes veces
 
 1. Abrir **Docker Desktop** y esperar a *Engine running*.
-2. **Doble clic en `iniciar.cmd`.**
+2. **Doble clic en `iniciar.cmd`** y elegir el proyecto por su número.
+
+Para aprender a trabajar con los agentes: [Cómo trabajar con agentes](GUIA-AGENTES.md).
 
 ## Instalación avanzada
 
@@ -103,10 +117,10 @@ Editar el fichero `.env` de la carpeta (se crea en el primer arranque) y volver 
 
 | Variable | Para qué |
 |---|---|
-| `ANTHROPIC_API_KEY` | Usar Claude con clave de API (opciones 2 y 4) |
+| `ANTHROPIC_API_KEY` | Usar Claude Code con clave de API (opción 7) |
 | `GIT_USER_NAME`, `GIT_USER_EMAIL` | Identidad de git dentro del contenedor |
 
-Resto de variables: [manual de uso](MANUAL.md#8-configuración).
+Resto de variables: [manual de uso](MANUAL.md#9-configuración).
 
 ### Modelo local con LM Studio
 
@@ -115,7 +129,7 @@ Resto de variables: [manual de uso](MANUAL.md#8-configuración).
 3. *Discover* → descargar un modelo ([modelos recomendados](MANUAL.md#modelos-recomendados)).
 4. Cargarlo con contexto **32768** y *GPU offload* al máximo.
 5. *Developer* → **Start Server**.
-6. Doble clic en `iniciar.cmd`. En el menú, opción **3**.
+6. Doble clic en `iniciar.cmd`. En el menú del proyecto, opción **3** (OpenCode local).
 
 ### Modelo local con llama.cpp (sin LM Studio)
 
@@ -129,7 +143,7 @@ Resto de variables: [manual de uso](MANUAL.md#8-configuración).
    ```powershell
    .\iniciar.cmd -LlamaCpp
    ```
-5. El primer arranque descarga el modelo. Ver el progreso con `docker compose logs -f llamacpp`. En el menú, opción **3**.
+5. El primer arranque descarga el modelo. Ver el progreso con `docker compose logs -f llamacpp`. En el menú del proyecto, opción **3**.
 
 ### Problemas de instalación
 
@@ -140,4 +154,4 @@ Resto de variables: [manual de uso](MANUAL.md#8-configuración).
 | `access denied` al usar Docker | `net localgroup docker-users "$env:USERNAME" /add` como administrador y cerrar sesión |
 | `failed to connect to the docker API` | Abrir Docker Desktop y esperar a *Engine running* |
 
-Más problemas: [manual de uso](MANUAL.md#10-solución-de-problemas).
+Más problemas: [manual de uso](MANUAL.md#12-solución-de-problemas).
