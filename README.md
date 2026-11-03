@@ -1,137 +1,138 @@
 # bulkhead
 
-IA en Windows sin darle acceso al resto de tu ordenador: **Claude Code** con tu cuenta de Anthropic y **modelos locales** que corren en tu propia GPU. Los modelos locales se usan como agente, con OpenCode dentro de un proyecto, o como chat en el navegador, con Open WebUI. Cada proyecto va en su propio contenedor de Docker, protegido por un cortafuegos. Solo hace falta instalar Docker Desktop.
+AI on Windows without giving it access to the rest of your computer: **Claude Code** with your Anthropic account, and **local models** that run on your own GPU. Local models work as an agent, with OpenCode inside a project, or as a chat in the browser, with Open WebUI. Each project runs in its own Docker container, behind a firewall. The only thing you need to install is Docker Desktop.
 
 > [!NOTE]
-> Proyecto personal que mantiene una sola persona. Funciona y tiene pruebas automáticas, pero nadie lo ha auditado. Antes de usarlo con algo importante, lee [qué protege y qué no](#qué-protege-y-qué-no).
+> A personal project maintained by one person. It works and has automated tests, but nobody has audited it. Before using it with anything important, read [what it protects and what it doesn't](#what-it-protects-and-what-it-doesnt).
 
-[Instalación](INSTALACION.md) · [Manual de uso](MANUAL.md) · [Cómo trabajar con agentes](GUIA-AGENTES.md) · [Limitaciones](#limitaciones)
+[Installation](INSTALL.md) · [User manual](MANUAL.md) · [Working with agents](AGENTS-GUIDE.md) · [Limitations](#limitations)
 
-## Versiones
+## Versions
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### Escritorio
+### Desktop
 
-**Disponible** · Windows 10 y 11 con Docker Desktop
+**Available** · Windows 10 and 11 with Docker Desktop
 
-Para usarlo en tu propio PC.
+To use it on your own PC.
 
-**Incluye**
+**Includes**
 
-- Un contenedor por proyecto, con sus archivos, sesiones y puertos
-- Claude Code: con tu suscripción, en modo autónomo o con clave de API
-- Modelos locales en tu GPU NVIDIA, servidos con LM Studio o llama.cpp. Se usan con:
-  - OpenCode: agente dentro del proyecto
-  - Open WebUI: chat en el navegador
-- Cortafuegos de salida: un proxy que solo deja pasar a los dominios permitidos
-- `iniciar.cmd`: comprueba la instalación y abre un menú
-- VS Code conectado al proyecto
+- One container per project, with its own files, sessions and ports
+- Claude Code: with your subscription, in autonomous mode or with an API key
+- Local models on your NVIDIA GPU, served by LM Studio or llama.cpp. Used with:
+  - OpenCode: an agent inside the project
+  - Open WebUI: a chat in the browser
+- Outbound firewall: a proxy that only lets allowed domains through
+- `iniciar.cmd`: checks the installation and opens a menu
+- VS Code connected to the project
 
-**Limitaciones**
+**Limitations**
 
-- Lanzador solo para Windows. En Linux funciona sin él; en macOS no se ha probado
-- El servidor del modelo local y Open WebUI quedan fuera del cortafuegos
+- The launcher is Windows-only. On Linux it works without it; macOS is untested
+- The local model server and Open WebUI are outside the firewall
 
 </td>
 <td width="50%" valign="top">
 
-### Servidor
+### Server
 
-**En desarrollo** · VM Linux, por ejemplo en Proxmox
+**In development** · Linux VM, for example on Proxmox
 
-Para dejar libre tu PC y trabajar desde cualquier dispositivo.
+To free up your PC and work from any device.
 
-**Incluirá**
+**Will include**
 
-- Los mismos proyectos aislados, gestionados con un script de Linux
-- Un modelo local compartido, sin acceso a internet
-- Sesiones que siguen vivas aunque se corte la conexión
-- Acceso remoto por Tailscale, sin abrir puertos
+- The same isolated projects, managed with a Linux script
+- A shared local model, with no internet access
+- Sessions that stay alive if the connection drops
+- Remote access over Tailscale, without opening ports
 
-**Limitaciones**
+**Limitations**
 
-- Hay que saber mantener un servidor Linux
-- Las actualizaciones y las copias de seguridad son cosa tuya
-- El acceso remoto añade superficie de ataque
+- You need to know how to run a Linux server
+- Updates and backups are up to you
+- Remote access adds attack surface
 
 </td>
 </tr>
 </table>
 
-## Empezar
+## Get started
 
-1. Instala [Docker Desktop](https://www.docker.com/products/docker-desktop/) y ábrelo.
-2. Descarga este repositorio (*Code → Download ZIP*) y descomprímelo.
-3. Doble clic en `iniciar.cmd` → **N** (nuevo proyecto) → **1** (Claude Code).
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and open it.
+2. Download this repository (*Code → Download ZIP*) and unzip it.
+3. Double-click `iniciar.cmd` → **N** (new project) → **1** (Claude Code).
 
-Guía paso a paso, sin comandos: [INSTALACION.md](INSTALACION.md).
+Step-by-step guide, no commands: [INSTALL.md](INSTALL.md).
 
-## Qué sale de tu equipo
+## What leaves your computer
 
-![Qué sale de tu equipo en cada modo. Conectado: tu código va a Anthropic, mejor no usarlo con datos sensibles. Modelo local: las instrucciones no salen, pero el agente aún puede subir datos a GitHub; con cuidado. Sin internet, en desarrollo: nada sale por la red; lo más prudente.](docs/img/datos.svg)
+![What leaves your computer in each mode. Connected: your code goes to Anthropic, better not use it with sensitive data. Local model: your prompts stay on your computer, but the agent can still upload data to GitHub; with care. Offline, in development: nothing goes over the network; the safest option.](docs/img/datos.svg)
 
-| Modo | Estado | Qué sale de tu equipo | Datos sensibles |
+| Mode | Status | What leaves your computer | Sensitive data |
 |---|---|---|---|
-| **Conectado**: Claude Code | Disponible | Tu código y tus instrucciones van a Anthropic, que los trata según las condiciones de tu cuenta. El agente también puede subir cosas a GitHub y descargar de npm y PyPI | Mejor no |
-| **Modelo local**: con OpenCode o con Open WebUI | Disponible | Las instrucciones no salen de tu equipo. Pero el contenedor del proyecto sigue pudiendo conectarse a GitHub, npm y PyPI, y llama.cpp descarga modelos de Hugging Face | Con cuidado |
-| **Sin internet**: modelo local, sin red | En desarrollo | Nada por la red | Lo más prudente, con los [límites](#qué-protege-y-qué-no) de abajo |
+| **Connected**: Claude Code | Available | Your code and your prompts go to Anthropic, which handles them under your account's terms. The agent can also push to GitHub and download from npm and PyPI | Better not |
+| **Local model**: with OpenCode or Open WebUI | Available | Your prompts stay on your computer. But the project's container can still connect to GitHub, npm and PyPI, and llama.cpp downloads models from Hugging Face | With care |
+| **Offline**: local model, no network | In development | Nothing goes over the network | The safest option, within the [limits](#what-it-protects-and-what-it-doesnt) below |
 
 > [!WARNING]
-> Con el entorno conectado a internet, mejor no tratar datos sensibles: datos personales de otras personas, secretos de empresa, credenciales de producción o información de clientes. El cortafuegos limita adónde se conecta el agente, pero no impide que envíe datos a los destinos permitidos.
+> While the environment is connected to the internet, better not handle sensitive data: other people's personal data, company secrets, production credentials or customer information. The firewall limits where the agent can connect, but it doesn't stop it from sending data to the allowed destinations.
 
-## Arquitectura
+## Architecture
 
-![Plano de la versión escritorio. En un PC con Windows, Docker Desktop ejecuta un contenedor por proyecto con Claude Code y OpenCode. Los agentes solo salen por un proxy que deja pasar a Anthropic, npm, PyPI, GitHub y VS Code; el resto se bloquea. LM Studio, llama.cpp y Open WebUI quedan fuera del cortafuegos.](docs/img/arquitectura-escritorio.svg)
+![Plan of the desktop version. On a Windows PC, Docker Desktop runs one container per project with Claude Code and OpenCode. The agents only go out through a proxy that lets through Anthropic, npm, PyPI, GitHub and VS Code; everything else is blocked. LM Studio, llama.cpp and Open WebUI are outside the firewall.](docs/img/arquitectura-escritorio.svg)
 
-- Los agentes se ejecutan en el contenedor del proyecto, con un usuario sin privilegios. No ven el disco de Windows ni los demás proyectos.
-- Los agentes no tienen DNS ni salida directa: todo pasa por un proxy, con otro usuario, que filtra por dominio y comprueba el nombre de cada conexión cifrada.
-- El cortafuegos se aplica antes de arrancar nada. Si no se aplica, o si no bloquea las conexiones de prueba, el contenedor no arranca.
-- La lista completa de destinos permitidos está en [scripts/firewall.sh](scripts/firewall.sh). Se amplía con `FIREWALL_ALLOW` en `.env`.
+- The agents run in the project's container, as an unprivileged user. They can't see the Windows drive or the other projects.
+- The agents have no DNS and no direct way out: everything goes through a proxy, running as another user, that filters by domain and checks the name of every encrypted connection.
+- The firewall is applied before anything starts. If it isn't applied, or it doesn't block the test connections, the container doesn't start.
+- The full list of allowed destinations is in [scripts/firewall.sh](scripts/firewall.sh). Add more with `FIREWALL_ALLOW` in `.env`.
 
-![Plano previsto de la versión servidor, en desarrollo. Tus dispositivos entran por Tailscale a una VM Linux en Proxmox. Cada proyecto es una instancia con su propio cortafuegos. Todas usan un modelo local compartido por redes internas sin salida a internet. Solo un descargador aparte sale a Hugging Face.](docs/img/arquitectura-servidor.svg)
+![Planned design of the server version, in development. Your devices reach a Linux VM on Proxmox over Tailscale. Each project is an instance with its own firewall. They all use a shared local model through internal networks with no internet access. Only a separate downloader goes out to Hugging Face.](docs/img/arquitectura-servidor.svg)
 
-Diseño previsto para la versión servidor. Todavía no está publicado.
+Planned design for the server version. It isn't released yet.
 
-## Qué protege y qué no
+## What it protects and what it doesn't
 
-| Riesgo | ¿Cubierto? | Por qué |
+| Risk | Covered? | Why |
 |---|---|---|
-| Que el agente lea o borre archivos de tu PC | Sí | Solo ve los archivos de su proyecto, no el disco de Windows |
-| Que un proyecto llegue a otro | Sí | Cada uno tiene su contenedor y su carpeta personal, y el cortafuegos bloquea las conexiones entre ellos |
-| Que el agente se conecte a cualquier sitio | Sí | Solo sale por un proxy que filtra por dominio, incluso detrás de CDN compartidas. Ver [limitaciones](#limitaciones) |
-| Que el entorno arranque sin cortafuegos | Sí | Si no se aplica, el contenedor no arranca |
-| Que el agente consiga permisos de administrador | Sí | Corre como usuario sin privilegios y no puede escalarlos |
-| Que un repositorio cambie las reglas de los agentes | En gran parte | Claude Code y OpenCode traen políticas que el repositorio no puede cambiar: ni permisos, ni hooks, ni plugins. Sí puede dar instrucciones al agente con su `CLAUDE.md`. Ver [MANUAL](MANUAL.md#10-seguridad) |
-| Que el agente estropee su proyecto | No | Puede escribir en `/workspace`. Usa git y sube los cambios a menudo |
-| Que salgan datos por un destino permitido | No | Si alguien engaña al agente, por ejemplo con instrucciones ocultas en un fichero o en una web, podría enviar datos a GitHub o a Anthropic |
-| Que el agente robe tus credenciales | En gran parte | Nunca ve la clave de API: la añade el proxy. Pero sí puede usarla mientras esté configurada, y usar el token de GitHub del proyecto, que solo da acceso a los repositorios que elijas |
-| Un fallo grave de Docker o del núcleo | No | Un contenedor comparte el núcleo del sistema: aísla menos que una máquina virtual |
-| LM Studio, llama.cpp y Open WebUI | No | No pasan por el cortafuegos de los proyectos |
+| The agent reading or deleting files on your PC | Yes | It only sees its project's files, not the Windows drive |
+| One project reaching another | Yes | Each one has its own container and home folder, and the firewall blocks connections between them |
+| The agent connecting anywhere | Yes | It only goes out through a proxy that filters by domain, even behind shared CDNs. See [limitations](#limitations) |
+| The environment starting without the firewall | Yes | If it isn't applied, the container doesn't start |
+| The agent getting administrator rights | Yes | It runs as an unprivileged user and can't escalate |
+| A repository changing the agents' rules | Mostly | Claude Code and OpenCode ship with policies the repository can't change: no permissions, hooks or plugins. It can still give the agent instructions in its `CLAUDE.md`. See the [manual](MANUAL.md#10-security) |
+| The agent breaking its own project | No | It can write to `/workspace`. Use git and push often |
+| Data leaving through an allowed destination | No | If someone tricks the agent, for example with instructions hidden in a file or a web page, it could send data to GitHub or Anthropic |
+| The agent stealing your credentials | Mostly | It never sees the API key: the proxy adds it. But it can use the key while it's configured, and use the project's GitHub token, which only gives access to the repositories you choose |
+| A serious bug in Docker or the kernel | No | A container shares the system's kernel: it isolates less than a virtual machine |
+| LM Studio, llama.cpp and Open WebUI | No | They don't go through the projects' firewall |
 
-## Limitaciones
+## Limitations
 
-- **Plataforma.** Pensado para Windows 10 y 11 con Docker Desktop. En Linux el entorno funciona (lo prueba la CI), pero no hay lanzador. En macOS no se ha probado.
-- **Lista blanca por dominio.** El proxy es tan seguro como la lista: en cada destino permitido se puede subir lo que ese sitio acepte (npm admite paquetes de cualquiera). Los programas que no usan proxy no tienen salida a internet. Y el proxy descifra la conexión con PyPI, con un certificado propio de cada proyecto, para comprobar qué web se pide.
-- **Versiones sin fijar.** Cada construcción instala la última versión de Claude Code y OpenCode. Una versión nueva puede romper algo, y un paquete comprometido entraría sin aviso.
-- **Modelos locales.** Los que caben en una GPU doméstica rinden bastante menos que Claude en tareas largas, y los recomendados cambian cada pocos meses.
-- **Docker Desktop.** Es de pago en empresas de más de 250 empleados o de más de 10 millones de dólares de facturación anual.
-- **En el trabajo.** Consulta la política de tu empresa sobre herramientas de IA y sobre dónde puede estar su código.
-- **Mantenimiento.** Lo mantiene una persona, sin soporte. Las herramientas de este campo cambian cada semana y el proyecto puede quedarse atrás.
+- **Platform.** Built for Windows 10 and 11 with Docker Desktop. On Linux the environment works (CI tests it), but there is no launcher. macOS is untested.
+- **Language.** The launcher (`iniciar.cmd`) and the `ia` menu inside the projects are in Spanish. These docs quote their options as they appear on screen.
+- **Domain allowlist.** The proxy is only as safe as its list: on each allowed destination, anything that site accepts can be uploaded (npm takes packages from anyone). Programs that don't use the proxy have no internet access. And the proxy decrypts the connection to PyPI, with a certificate unique to each project, to check which page is requested.
+- **Unpinned versions.** Every build installs the latest Claude Code and OpenCode. A new version can break something, and a compromised package would get in without warning.
+- **Local models.** The ones that fit on a home GPU do much worse than Claude on long tasks, and the recommended ones change every few months.
+- **Docker Desktop.** It's paid for companies with more than 250 employees or more than 10 million dollars in annual revenue.
+- **At work.** Check your company's policy on AI tools and on where its code may go.
+- **Maintenance.** Maintained by one person, with no support. Tools in this field change every week and the project may fall behind.
 
-## Alternativas
+## Alternatives
 
-Si esto no encaja con lo que buscas, puede que te sirva mejor alguna de estas:
+If this doesn't fit what you're looking for, one of these may suit you better:
 
-| Si buscas | Mira | A tener en cuenta |
+| If you want | Look at | Keep in mind |
 |---|---|---|
-| Más aislamiento: una máquina virtual ligera por agente | [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) | Producto de Docker; pide iniciar sesión con una cuenta de Docker |
-| Solo Claude Code, dentro de VS Code | [Dev container de Anthropic](https://code.claude.com/docs/en/devcontainer) | Ejemplo oficial, no una imagen mantenida |
-| Probar modelos locales sin complicarte | [LM Studio](https://lmstudio.ai) u [Ollama](https://ollama.com) | Sirven el modelo, pero no aíslan al agente |
-| Entornos para un equipo con varias personas | [Coder](https://coder.com) | Más potente y más complejo de mantener |
+| More isolation: a lightweight virtual machine per agent | [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) | A Docker product; it asks you to sign in with a Docker account |
+| Just Claude Code, inside VS Code | [Anthropic's dev container](https://code.claude.com/docs/en/devcontainer) | An official example, not a maintained image |
+| To try local models without fuss | [LM Studio](https://lmstudio.ai) or [Ollama](https://ollama.com) | They serve the model, but they don't isolate the agent |
+| Environments for a team | [Coder](https://coder.com) | More powerful, and more complex to maintain |
 
-## Licencia
+## License
 
 [MIT](LICENSE).

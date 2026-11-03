@@ -1,66 +1,68 @@
-# Manual de uso
+# User manual
 
-1. [Requisitos](#1-requisitos)
-2. [Instalación](#2-instalación)
-3. [Arranque](#3-arranque)
-4. [Proyectos](#4-proyectos)
-5. [Menú del proyecto](#5-menú-del-proyecto)
-6. [Primer uso](#6-primer-uso)
-7. [Uso diario](#7-uso-diario)
-8. [Modelo local](#8-modelo-local)
-9. [Configuración](#9-configuración)
-10. [Seguridad](#10-seguridad)
-11. [Actualizar, parar y borrar](#11-actualizar-parar-y-borrar)
-12. [Solución de problemas](#12-solución-de-problemas)
+1. [Requirements](#1-requirements)
+2. [Installation](#2-installation)
+3. [Starting up](#3-starting-up)
+4. [Projects](#4-projects)
+5. [Project menu](#5-project-menu)
+6. [First use](#6-first-use)
+7. [Daily use](#7-daily-use)
+8. [Local model](#8-local-model)
+9. [Configuration](#9-configuration)
+10. [Security](#10-security)
+11. [Update, stop and delete](#11-update-stop-and-delete)
+12. [Troubleshooting](#12-troubleshooting)
 
-## 1. Requisitos
+The launcher (`iniciar.cmd`) and the `ia` menu are in Spanish. This manual quotes their options as they appear on screen, with what each one does.
 
-| Requisito | Notas |
+## 1. Requirements
+
+| Requirement | Notes |
 |---|---|
-| Windows 10 22H2 o Windows 11 23H2 (Home o Pro) | Con la virtualización activada en la BIOS. Detalle en [INSTALACION.md](INSTALACION.md#requisitos) |
-| Docker Desktop | Con *Use WSL 2 based engine* activado (viene así por defecto) |
-| Cuenta de Claude (Pro, Max o Team) o clave de API | Para Claude Code. OpenCode con modelo local funciona sin ellas |
-| GPU NVIDIA con driver actualizado | Solo para el modelo local |
-| LM Studio 0.4.1 o superior | Solo si el modelo local se sirve con LM Studio |
-| VS Code | Opcional, para la opción *VS Code* del menú |
+| Windows 10 22H2 or Windows 11 23H2 (Home or Pro) | With virtualization turned on in the BIOS. Details in [INSTALL.md](INSTALL.md#requirements) |
+| Docker Desktop | With *Use WSL 2 based engine* turned on (it is by default) |
+| A Claude account (Pro, Max or Team) or an API key | For Claude Code. OpenCode with a local model works without them |
+| NVIDIA GPU with an up-to-date driver | Only for the local model |
+| LM Studio 0.4.1 or later | Only if the local model is served by LM Studio |
+| VS Code | Optional, for the menu's *VS Code* option |
 
-No hace falta instalar Git, Node.js, Python ni ninguna herramienta más: están dentro del entorno.
+You don't need to install Git, Node.js, Python or any other tool: they are inside the environment.
 
-## 2. Instalación
+## 2. Installation
 
-Instalación completa desde cero: [INSTALACION.md](INSTALACION.md).
+Full installation from scratch: [INSTALL.md](INSTALL.md).
 
-Con Git:
+With Git:
 
 ```powershell
 git clone https://github.com/abarriuso/bulkhead.git
 cd bulkhead
 ```
 
-Sin Git: en GitHub, *Code → Download ZIP*, y descomprimir.
+Without Git: on GitHub, *Code → Download ZIP*, and unzip it.
 
-## 3. Arranque
+## 3. Starting up
 
-1. Abrir Docker Desktop y esperar a *Engine running*.
-2. Ejecutar `iniciar.cmd` (doble clic o desde la terminal):
+1. Open Docker Desktop and wait for *Engine running*.
+2. Run `iniciar.cmd` (double-click it, or from the terminal):
 
 ```powershell
-.\iniciar.cmd              # modelo local en LM Studio, o sin modelo local
-.\iniciar.cmd -LlamaCpp    # modelo local en llama.cpp (Docker)
+.\iniciar.cmd              # local model in LM Studio, or no local model
+.\iniciar.cmd -LlamaCpp    # local model in llama.cpp (Docker)
 ```
 
-El script comprueba la instalación, abre Docker Desktop si está cerrado, crea `.env` si no existe y prepara el entorno: descarga la imagen ya construida o, si no puede, la construye en el PC (5-10 minutos la primera vez). Después muestra los proyectos.
+The script checks the installation, opens Docker Desktop if it's closed, creates `.env` if it doesn't exist and prepares the environment: it downloads the ready-built image or, if it can't, builds it on the PC (5–10 minutes the first time). Then it shows the projects.
 
-## 4. Proyectos
+## 4. Projects
 
-Cada proyecto vive en **su propio contenedor**, con sus archivos, su historial de git, sus puertos y su **carpeta personal**: las sesiones de Claude, OpenCode y GitHub, la configuración de los agentes y VS Code. Un agente que trabaja en un proyecto no puede ver ni tocar los demás, ni dejar en su configuración algo que afecte a otro.
+Each project lives in **its own container**, with its files, its git history, its ports and its **home folder**: the Claude, OpenCode and GitHub sessions, the agents' settings and VS Code. An agent working in one project can't see or touch the others, or leave anything in its settings that affects another one.
 
-Lo que comparten todos los proyectos:
+What all projects share:
 
-- La imagen (Claude Code, OpenCode y las herramientas): se descarga una sola vez.
-- Los modelos de llama.cpp.
+- The image (Claude Code, OpenCode and the tools): downloaded only once.
+- The llama.cpp models.
 
-La pantalla principal de `iniciar.cmd`:
+The main screen of `iniciar.cmd`:
 
 ```
    TUS PROYECTOS
@@ -75,231 +77,232 @@ La pantalla principal de `iniciar.cmd`:
      0  Salir                   Los proyectos encendidos siguen funcionando
 ```
 
-- **Abrir un proyecto:** escribir su número. Si estaba apagado, se enciende en unos segundos.
-- **Nuevo proyecto (N):** pide un nombre (minúsculas, números y guiones) y, opcionalmente, la dirección de un repositorio. Cada proyecto tiene sus propias sesiones: Claude Code pide iniciar sesión la primera vez y GitHub se conecta en cada uno, con un token para sus repositorios. Si el repositorio es privado y GitHub no está conectado, ofrece conectarlo. Un proyecto vacío empieza con git y un `CLAUDE.md` de plantilla para los agentes.
-- **Borrar (B):** borra el contenedor, los archivos y las sesiones del proyecto. Antes avisa si hay cambios sin guardar o sin subir a GitHub, y pide escribir el nombre otra vez.
+Each project shows as *apagado* (off) or *encendido* (on), with its address. The options: **N** new project, **B** delete a project, **W** Open WebUI ([chat in the browser](#open-webui-chat-in-the-browser)), **A** update Claude Code and OpenCode, **P** shut down all projects (nothing is lost), **0** exit (running projects keep running).
 
-**Puertos:** dentro de cada proyecto los servidores de desarrollo usan siempre 3000, 5173 y 8080. En Windows, cada proyecto los publica en puertos distintos para que puedan funcionar a la vez: el primer proyecto en 3001, 5174 y 8081, el segundo en 3002, 5175 y 8082, etc. El menú del proyecto muestra sus direcciones.
+- **Open a project:** type its number. If it was off, it starts in a few seconds.
+- **New project (N):** asks for a name (lowercase letters, numbers and hyphens) and, optionally, the address of a repository. Each project has its own sessions: Claude Code asks you to sign in the first time, and GitHub is connected in each one, with a token for its repositories. If the repository is private and GitHub isn't connected, it offers to connect it. An empty project starts with git and a template `CLAUDE.md` for the agents.
+- **Delete (B):** deletes the project's container, files and sessions. First it warns you if there are changes not saved or not pushed to GitHub, and asks you to type the name again.
 
-**Proyecto `general`:** es el proyecto por defecto (`docker compose up` sin más, o VS Code con `.devcontainer/devcontainer.json`). Usa los puertos de siempre: 3000, 5173 y 8080. Si usabas una versión anterior a bulkhead, tus archivos siguen en el volumen de Docker `entorno-ia_workspace`, pero no aparecen en el menú.
+**Ports:** inside each project, development servers always use 3000, 5173 and 8080. On Windows, each project publishes them on different ports so they can run at the same time: the first project on 3001, 5174 and 8081, the second on 3002, 5175 and 8082, and so on. The project menu shows its addresses.
 
-## 5. Menú del proyecto
+**The `general` project:** the default project (plain `docker compose up`, or VS Code with `.devcontainer/devcontainer.json`). It uses the usual ports: 3000, 5173 and 8080. If you used a version from before bulkhead, your files are still in the `entorno-ia_workspace` Docker volume, but they don't show in the menu.
 
-Las herramientas se abren en una **pestaña nueva** de Windows Terminal (o en una ventana nueva si no está instalado) y el menú sigue disponible, así se pueden usar varias a la vez.
+## 5. Project menu
 
-| Opción | Qué abre |
+The tools open in a **new tab** of Windows Terminal (or in a new window if it isn't installed) and the menu stays available, so you can use several at once.
+
+| Option | What it opens |
 |---|---|
-| **Trabajar con IA** | |
-| 1 Claude Code | Claude Code con tu cuenta de Claude. Pide permiso antes de cada cambio o comando |
-| 2 Claude Code autónomo | Claude Code sin pedir permiso (`--dangerously-skip-permissions`). Más rápido, pero úsalo solo con proyectos y repositorios de confianza: el aislamiento protege tu PC, no impide que unas instrucciones ocultas en un archivo o una web engañen al agente. No funciona con `FIREWALL=off`. Revisa los cambios al final con git |
-| 3 OpenCode local | OpenCode con el modelo de LM Studio o llama.cpp. Gratis; el modelo corre en tu PC. Como Claude Code, pide permiso antes de editar o ejecutar comandos |
-| **Herramientas** | |
-| 4 Terminal | Línea de comandos del proyecto (git, gh, npm, python…) |
-| 5 VS Code | Abre el proyecto en VS Code, conectado al contenedor. Instala sola la extensión *Dev Containers* |
-| 6 Conectar GitHub | Conecta GitHub en este proyecto con un token que creas en GitHub solo para sus repositorios. Necesario para repositorios privados y para subir cambios. Los agentes del proyecto pueden usar esa conexión: por eso no se ofrece un inicio de sesión con acceso a todos tus repositorios |
-| **Avanzado** | |
-| 7 Claude Code con API | Claude Code pagando por uso con `ANTHROPIC_API_KEY` |
-| 8 Modelos locales | Lista los modelos disponibles en LM Studio o llama.cpp |
-| 0 Volver | Vuelve a la lista de proyectos. El proyecto sigue encendido |
+| ***Trabajar con IA*** (work with AI) | |
+| 1 Claude Code | Claude Code with your Claude account. Asks for permission before each change or command |
+| 2 *Claude Code autónomo* (autonomous) | Claude Code without asking for permission (`--dangerously-skip-permissions`). Faster, but only use it with projects and repositories you trust: the isolation protects your PC, it doesn't stop instructions hidden in a file or a web page from tricking the agent. Doesn't work with `FIREWALL=off`. Review the changes at the end with git |
+| 3 OpenCode local | OpenCode with the LM Studio or llama.cpp model. Free; the model runs on your PC. Like Claude Code, it asks for permission before editing or running commands |
+| ***Herramientas*** (tools) | |
+| 4 Terminal | The project's command line (git, gh, npm, python…) |
+| 5 VS Code | Opens the project in VS Code, connected to the container. Installs the *Dev Containers* extension by itself |
+| 6 *Conectar GitHub* (connect GitHub) | Connects GitHub in this project with a token you create on GitHub for its repositories only. Needed for private repositories and to push changes. The project's agents can use that connection: that's why there's no sign-in that gives access to all your repositories |
+| ***Avanzado*** (advanced) | |
+| 7 *Claude Code con API* (with the API) | Claude Code paid per use with `ANTHROPIC_API_KEY` |
+| 8 *Modelos locales* (local models) | Lists the models available in LM Studio or llama.cpp |
+| 0 *Volver a proyectos* (back) | Goes back to the project list. The project stays on |
 
-Dentro del proyecto (en la terminal o en VS Code) existe el mismo menú en modo texto: `ia`. También se puede usar con nombres:
+Inside the project (in the terminal or in VS Code) the same menu exists in text mode: `ia`. It can also be used with names:
 
 ```bash
 ia claude        # Claude Code
-ia auto          # Claude Code autónomo
-ia local         # OpenCode con el modelo local
-ia github        # conectar GitHub
-ia claude -c     # los argumentos extra pasan a la herramienta (aquí: continuar la última conversación)
-ia -h            # ayuda
+ia auto          # autonomous Claude Code
+ia local         # OpenCode with the local model
+ia github        # connect GitHub
+ia claude -c     # extra arguments go to the tool (here: continue the last conversation)
+ia -h            # help
 ```
 
-## 6. Primer uso
+## 6. First use
 
-1. `iniciar.cmd` → **N** → nombre del proyecto → Enter (vacío) o la dirección de un repositorio.
-2. En el menú del proyecto, **1** (Claude Code). La primera vez muestra una URL de inicio de sesión: abrirla en el navegador de Windows, iniciar sesión y pegar el código.
-3. Para subir el trabajo a GitHub: opción **6** (Conectar GitHub), una vez en cada proyecto.
+1. `iniciar.cmd` → **N** → project name → Enter (empty) or the address of a repository.
+2. In the project menu, **1** (Claude Code). The first time, it shows a sign-in URL: open it in the Windows browser, sign in and paste the code.
+3. To push your work to GitHub: option **6** (*Conectar GitHub*), once in each project.
 
-Las sesiones de Claude Code, OpenCode y GitHub se conservan entre reinicios. Son de cada proyecto: al crear otro, Claude Code vuelve a pedir iniciar sesión y GitHub se conecta de nuevo.
+The Claude Code, OpenCode and GitHub sessions are kept across restarts. They belong to each project: when you create another one, Claude Code asks you to sign in again and GitHub is connected again.
 
-Los agentes leen el archivo `CLAUDE.md` del proyecto al empezar: rellénalo (o pídeles que lo hagan con `/init`). Además conocen las reglas del entorno (puertos, cortafuegos, sin `sudo`) sin que haya que explicárselas. Más consejos en [Cómo trabajar con agentes](GUIA-AGENTES.md).
+The agents read the project's `CLAUDE.md` file when they start: fill it in (or ask them to with `/init`). They also know the environment's rules (ports, firewall, no `sudo`) without you having to explain them. More tips in [Working with agents](AGENTS-GUIDE.md).
 
-## 7. Uso diario
+## 7. Daily use
 
-Con Docker Desktop abierto: ejecutar `iniciar.cmd` y elegir el proyecto. Si el entorno ya está preparado, tarda segundos.
+With Docker Desktop open: run `iniciar.cmd` and choose the project. If the environment is already prepared, it takes seconds.
 
-Sin el menú, desde la carpeta del repositorio:
+Without the menu, from the repository folder:
 
 ```powershell
-docker exec -it -u node bulkhead-web-workspace-1 ia     # menú del proyecto "web"
-docker exec -it -u node bulkhead-web-workspace-1 bash   # terminal del proyecto "web"
+docker exec -it -u node bulkhead-web-workspace-1 ia     # menu of the "web" project
+docker exec -it -u node bulkhead-web-workspace-1 bash   # terminal of the "web" project
 ```
 
-Los contenedores se llaman `bulkhead-<proyecto>-workspace-1` y aparecen agrupados en Docker Desktop (*Containers*), donde también se pueden ver sus registros, encender y apagar.
+The containers are named `bulkhead-<project>-workspace-1` and show up grouped in Docker Desktop (*Containers*), where you can also see their logs and start and stop them.
 
-**Servidores de desarrollo:** arrancarlos escuchando en `0.0.0.0` y en el puerto 3000, 5173 u 8080. Abrirlos en Windows con la dirección que muestra el menú del proyecto. Ejemplo:
+**Development servers:** start them listening on `0.0.0.0` and on port 3000, 5173 or 8080. Open them on Windows at the address the project menu shows. For example:
 
 ```bash
-npm run dev -- --host 0.0.0.0 --port 5173     # en el proyecto 1 se abre en http://localhost:5174
+npm run dev -- --host 0.0.0.0 --port 5173     # in project 1 it opens at http://localhost:5174
 ```
 
-**VS Code:** la opción 5 abre el proyecto conectado a su contenedor, con el usuario `node` en `/workspace`. La terminal integrada ya está dentro: `ia` abre el menú. El archivo `.devcontainer/devcontainer.json` del repositorio abre el proyecto `general`.
+**VS Code:** option 5 opens the project connected to its container, as the `node` user in `/workspace`. The integrated terminal is already inside: `ia` opens the menu. The repository's `.devcontainer/devcontainer.json` file opens the `general` project.
 
-## 8. Modelo local
+## 8. Local model
 
-Un modelo local corre en tu tarjeta gráfica: es gratis y tus instrucciones no salen del PC, aunque rinde bastante menos que Claude. Tiene dos partes:
+A local model runs on your graphics card: it's free and your prompts don't leave the PC, though it does much worse than Claude. It has two parts:
 
-1. **Un servidor que lo carga:** LM Studio (en Windows) o llama.cpp (en Docker). Uno de los dos.
-2. **Una forma de usarlo**, o las dos a la vez:
-   - **OpenCode** (opción **3** del proyecto): agente que trabaja en los archivos del proyecto, como Claude Code.
-   - **Open WebUI** (opción **W** de la pantalla principal): chat en el navegador, sin agente.
+1. **A server that loads it:** LM Studio (on Windows) or llama.cpp (in Docker). One of the two.
+2. **A way to use it**, or both at once:
+   - **OpenCode** (option **3** of the project): an agent that works on the project's files, like Claude Code.
+   - **Open WebUI** (option **W** on the main screen): a chat in the browser, with no agent.
 
 ### LM Studio
 
-1. Descargar un modelo en *Discover* (ver tabla de modelos).
-2. Cargarlo con contexto 32768 y *GPU offload* al máximo.
-3. *Developer → Start Server* (puerto 1234).
-4. Arrancar con `.\iniciar.cmd` y usar OpenCode u Open WebUI.
+1. Download a model in *Discover* (see the table of models).
+2. Load it with a context of 32768 and *GPU offload* at the maximum.
+3. *Developer → Start Server* (port 1234).
+4. Start with `.\iniciar.cmd` and use OpenCode or Open WebUI.
 
 ### llama.cpp
 
-1. Comprobar que Docker ve la GPU:
+1. Check that Docker sees the GPU:
    ```powershell
    docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
    ```
-2. Elegir el modelo en `.env` (`LLAMACPP_HF_REPO`).
-3. Arrancar con `.\iniciar.cmd -LlamaCpp`. Un único llama.cpp sirve a todos los proyectos. El primer arranque descarga el modelo:
+2. Choose the model in `.env` (`LLAMACPP_HF_REPO`).
+3. Start with `.\iniciar.cmd -LlamaCpp`. A single llama.cpp serves every project. The first start downloads the model:
    ```powershell
    docker compose logs -f llamacpp
    ```
 
-### Open WebUI: chat en el navegador
+### Open WebUI: chat in the browser
 
-Para cuando solo quieres hablar con el modelo, sin agente: preguntas, textos, resúmenes o documentos que subas tú. No ve los archivos de tus proyectos.
+For when you only want to talk to the model, with no agent: questions, texts, summaries or documents you upload yourself. It can't see your projects' files.
 
-1. Tener el modelo local en marcha (LM Studio o llama.cpp).
-2. `iniciar.cmd` → **W**. Se abre en el navegador en http://localhost:3100.
-3. La primera vez descarga Open WebUI (varios GB) y pide crear una cuenta. La cuenta y los chats se guardan solo en este PC, en el volumen `bulkhead_openwebui`.
+1. Have the local model running (LM Studio or llama.cpp).
+2. `iniciar.cmd` → **W**. It opens in the browser at http://localhost:3100.
+3. The first time, it downloads Open WebUI (several GB) and asks you to create an account. The account and the chats are stored only on this PC, in the `bulkhead_openwebui` volume.
 
-Viene configurado para no salir a internet por su cuenta: no descarga modelos, no comprueba versiones, no envía telemetría y no comparte chats. Lo que **no** tiene es el cortafuegos de los proyectos: va en su propia red de Docker, que solo llega al modelo local y no a los proyectos, pero esa red sí tiene salida a internet.
+It comes set up not to go online on its own: it doesn't download models, check for versions, send telemetry or share chats. What it **doesn't** have is the projects' firewall: it runs on its own Docker network, which only reaches the local model and not the projects, but that network does have internet access.
 
-### Ollama u otro servidor
+### Ollama or another server
 
-Cualquier servidor compatible con la API de OpenAI que corra en Windows. Por ejemplo, Ollama: en `.env`, `LOCAL_URL=http://host.docker.internal:11434`. `iniciar.cmd` respeta ese valor (salvo con `-LlamaCpp`) y el cortafuegos abre solo ese puerto del PC.
+Any OpenAI-compatible API server running on Windows. For example, Ollama: in `.env`, `LOCAL_URL=http://host.docker.internal:11434`. `iniciar.cmd` respects that value (except with `-LlamaCpp`) and the firewall opens only that port of the PC.
 
-### Modelos recomendados
+### Recommended models
 
-| GPU | RAM | `LLAMACPP_HF_REPO` | Notas |
+| GPU | RAM | `LLAMACPP_HF_REPO` | Notes |
 |---|---|---|---|
-| 6–8 GB | 16 GB | `unsloth/Qwen3.5-9B-GGUF:Q4_K_M` | Entero en la GPU |
+| 6–8 GB | 16 GB | `unsloth/Qwen3.5-9B-GGUF:Q4_K_M` | Fully on the GPU |
 | 8–16 GB | 32 GB | `unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_M` | `LLAMACPP_CPU_MOE=true` |
-| 24 GB o más | — | `unsloth/Qwen3.6-27B-GGUF:Q4_K_M` | Entero en la GPU |
+| 24 GB or more | — | `unsloth/Qwen3.6-27B-GGUF:Q4_K_M` | Fully on the GPU |
 
-En LM Studio, buscar el mismo modelo en *Discover*. Para modelos MoE en GPUs pequeñas, activar la opción de mantener los expertos en la CPU.
+In LM Studio, search for the same model in *Discover*. For MoE models on small GPUs, turn on the option to keep the experts on the CPU.
 
-## 9. Configuración
+## 9. Configuration
 
-Fichero `.env` en la carpeta del repositorio. Vale para todos los proyectos:
+The `.env` file in the repository folder. It applies to every project:
 
-| Variable | Descripción |
+| Variable | Description |
 |---|---|
-| `LOCAL_URL` | Servidor del modelo local. `iniciar.cmd` pone el de LM Studio o el de llama.cpp, salvo que escribas otro (ver [Ollama u otro servidor](#ollama-u-otro-servidor)). Es el único puerto del PC al que llegan los proyectos |
-| `LOCAL_MODEL` | Modelo local a usar. Vacío = el primero disponible |
-| `LLAMACPP_HF_REPO` | Modelo GGUF de Hugging Face (`usuario/repo:cuantización`) |
-| `LLAMACPP_CTX` | Tamaño de contexto (recomendado 32768) |
-| `LLAMACPP_CPU_MOE` | `true` para mantener los expertos MoE en la RAM |
-| `ANTHROPIC_API_KEY` | Clave de API de Anthropic, para la opción 7, Claude Code con API. Los agentes no pueden leerla (ver [Seguridad](#10-seguridad)). Se toma siempre de `.env`, no de las variables de Windows. La línea tiene que existir aunque esté vacía |
-| `GIT_USER_NAME`, `GIT_USER_EMAIL` | Identidad de git dentro de los proyectos |
-| `FIREWALL` | `on` (por defecto) u `off` |
-| `FIREWALL_ALLOW` | Dominios extra permitidos, separados por comas (`*.ejemplo.com` para sus subdominios). Una IP o un rango se permiten directamente, sin pasar por el proxy |
-| `WORKSPACE_MEMORY` | Memoria máxima de cada proyecto (por defecto `4g`) |
-| `WORKSPACE_CPUS` | Núcleos máximos de cada proyecto (por defecto `2`) |
-| `IMAGEN` | Imagen del entorno. Por defecto, la versión publicada por este repositorio que corresponde a esta copia |
+| `LOCAL_URL` | The local model's server. `iniciar.cmd` sets LM Studio's or llama.cpp's, unless you write another one (see [Ollama or another server](#ollama-or-another-server)). It's the only port of the PC the projects can reach |
+| `LOCAL_MODEL` | The local model to use. Empty = the first one available |
+| `LLAMACPP_HF_REPO` | GGUF model from Hugging Face (`user/repo:quantization`) |
+| `LLAMACPP_CTX` | Context size (32768 recommended) |
+| `LLAMACPP_CPU_MOE` | `true` to keep the MoE experts in RAM |
+| `ANTHROPIC_API_KEY` | Anthropic API key, for option 7, Claude Code with the API. The agents can't read it (see [Security](#10-security)). It's always taken from `.env`, not from the Windows variables. The line must exist even if it's empty |
+| `GIT_USER_NAME`, `GIT_USER_EMAIL` | Git identity inside the projects |
+| `FIREWALL` | `on` (default) or `off` |
+| `FIREWALL_ALLOW` | Extra allowed domains, separated by commas (`*.example.com` for its subdomains). An IP or a range is allowed directly, without going through the proxy |
+| `WORKSPACE_MEMORY` | Maximum memory for each project (default `4g`) |
+| `WORKSPACE_CPUS` | Maximum cores for each project (default `2`) |
+| `IMAGEN` | The environment image. By default, the version published by this repository that matches this copy |
 
-Los cambios se aplican al volver a abrir el proyecto desde `iniciar.cmd`. Solo estas variables llegan a los proyectos: si añades otras a `.env`, los agentes no las verán.
+Changes apply when you open the project again from `iniciar.cmd`. Only these variables reach the projects: if you add others to `.env`, the agents won't see them.
 
-## 10. Seguridad
+## 10. Security
 
-| Medida | Efecto |
+| Measure | Effect |
 |---|---|
-| Un contenedor por proyecto | Cada agente solo ve los archivos de su proyecto, no los demás ni el disco de Windows |
-| Cortafuegos de salida por dominio | Los agentes no tienen salida directa a internet ni DNS: solo pueden hablar con un proxy (Squid, con otro usuario) que únicamente conecta con los dominios permitidos. Comprueba el nombre que va dentro de la conexión cifrada, no solo la dirección, y en PyPI descifra para comprobar también la web pedida. El resto se rechaza |
-| Arranque seguro | Si el cortafuegos no se aplica, el contenedor no arranca |
-| Usuario sin privilegios | Claude Code y OpenCode se ejecutan como `node`, sin permisos de administrador |
-| Contenedor endurecido | Sin capacidades de Linux salvo las mínimas, sin escalada de privilegios, con límites de memoria, CPU y procesos |
-| Puertos locales | Los servidores de desarrollo solo son accesibles desde el propio PC |
-| Sin acceso entre proyectos ni al PC | Un proyecto no puede conectarse a otro. Del PC, o de llama.cpp, solo alcanza la dirección y el puerto de `LOCAL_URL` (el modelo local) |
-| Sin DNS para los agentes | Los nombres los resuelve el proxy. Ni el DNS de Docker ni el puerto 53 se pueden usar como túnel hacia fuera |
-| Carpeta personal por proyecto | Sesiones, configuración de los agentes, carpetas de confianza de Claude y VS Code son de cada proyecto. Lo que un agente deje ahí no afecta a otros proyectos; no se copia nada de un proyecto a otro |
-| Clave de API protegida | `ANTHROPIC_API_KEY` llega como secreto que solo puede leer root, y es el proxy quien la añade a las peticiones de la opción 7 (Claude Code con API). Claude Code recibe una clave de relleno: ni sus comandos ni ningún otro programa del proyecto pueden leer la de verdad. Sí pueden usarla mientras el proyecto tenga clave configurada, enviando peticiones a la API de Anthropic a tu cargo |
-| Políticas de los agentes | Claude Code y OpenCode traen una configuración gestionada que los repositorios clonados no pueden cambiar. Claude Code: solo se ejecutan los hooks del entorno y las reglas de permisos de la política (un `.claude/settings.json` del repositorio no puede autorizar comandos; por lo mismo, «no volver a preguntar» no se guarda para siempre), no se usan servidores MCP, su herramienta de lectura no abre `.env` ni credenciales y los comandos que ejecuta no heredan claves. OpenCode: solo usa el modelo local, no comparte conversaciones, pide permiso antes de editar o ejecutar comandos, no lee `.env`, e ignora la configuración, los agentes y los plugins que traiga el repositorio (sí lee su `AGENTS.md` y su `CLAUDE.md`). Estas reglas no impiden que un comando aprobado lea un archivo: lo que de verdad protege los secretos es que el usuario de los agentes no pueda abrirlos |
+| One container per project | Each agent only sees its own project's files, not the others or the Windows drive |
+| Outbound firewall by domain | The agents have no direct internet access and no DNS: they can only talk to a proxy (Squid, running as another user) that only connects to the allowed domains. It checks the name inside the encrypted connection, not just the address, and for PyPI it decrypts to also check the page requested. Everything else is refused |
+| Safe start | If the firewall isn't applied, the container doesn't start |
+| Unprivileged user | Claude Code and OpenCode run as `node`, without administrator rights |
+| Hardened container | No Linux capabilities beyond the minimum, no privilege escalation, with memory, CPU and process limits |
+| Local ports | The development servers can only be reached from the PC itself |
+| No access between projects or to the PC | A project can't connect to another one. Of the PC, or of llama.cpp, it only reaches the address and port in `LOCAL_URL` (the local model) |
+| No DNS for the agents | The proxy resolves the names. Neither Docker's DNS nor port 53 can be used as a tunnel out |
+| A home folder per project | Sessions, the agents' settings, and the trusted folders of Claude and VS Code belong to each project. Whatever an agent leaves there doesn't affect other projects; nothing is copied from one project to another |
+| Protected API key | `ANTHROPIC_API_KEY` arrives as a secret only root can read, and the proxy adds it to the requests of option 7 (Claude Code with the API). Claude Code gets a placeholder key: neither its commands nor any other program in the project can read the real one. They can use it while the project has a key configured, by sending requests to the Anthropic API at your expense |
+| Agent policies | Claude Code and OpenCode come with managed settings that cloned repositories can't change. Claude Code: only the environment's hooks and the policy's permission rules run (a repository's `.claude/settings.json` can't authorise commands; for the same reason, "don't ask again" isn't saved for good), no MCP servers are used, its read tool won't open `.env` or credentials, and the commands it runs don't inherit keys. OpenCode: only uses the local model, doesn't share conversations, asks for permission before editing or running commands, doesn't read `.env`, and ignores the settings, agents and plugins a repository brings (it does read its `AGENTS.md` and `CLAUDE.md`). These rules don't stop an approved command from reading a file: what really protects the secrets is that the agents' user can't open them |
+| Image published with an attestation | The image is downloaded by version, not as `latest`, and CI publishes a signed attestation that it was built here. To check it: `gh attestation verify oci://ghcr.io/abarriuso/bulkhead:<version> --owner abarriuso` (the version is in `docker-compose.yml`) |
 
-| Imagen publicada con atestación | La imagen se descarga por versión, no como `latest`, y la CI publica una atestación firmada de que se construyó aquí. Para comprobarla: `gh attestation verify oci://ghcr.io/abarriuso/bulkhead:<versión> --owner abarriuso` (la versión está en `docker-compose.yml`)` |
+Destinations allowed by default: Anthropic and Claude, GitHub, npm, PyPI, VS Code and the local model. The full list is in [scripts/firewall.sh](scripts/firewall.sh). The proxy's connections are logged in `/var/log/bulkhead-proxy/conexiones.log` inside the project; the blocked ones are marked `DENIED`.
 
-Destinos permitidos por defecto: Anthropic y Claude, GitHub, npm, PyPI, VS Code y el modelo local. La lista completa está en [scripts/firewall.sh](scripts/firewall.sh). Las conexiones del proxy quedan en `/var/log/bulkhead-proxy/conexiones.log` dentro del proyecto; las bloqueadas llevan `DENIED`.
+**What it doesn't cover:**
 
-**Lo que no cubre:**
+- **Hidden instructions (*prompt injection*).** A README, an issue or a web page can contain instructions for the agent. The firewall limits where it can send data, but GitHub (the repositories of your token), npm (which takes packages from anyone) and the Anthropic API are allowed. That's why autonomous mode is only for projects you trust.
+- **Within the same project,** a tricked agent can leave something in its settings that runs the next time you open that project, or change its credentials. If you suspect a project, delete it, create it again from GitHub and don't copy anything from it.
+- **The GitHub token** (option 6) can be used by the project's agents: a tricked agent could push data or delete branches in the repositories you gave it. Choose only the project's repositories and protect the main branch on GitHub (*Settings → Rules → Rulesets*: block *force push* and deletion).
+- **VS Code connected to a project** is a bridge to Windows: don't use it with repositories you don't trust, or at the same time as autonomous mode.
+- **The proxy is only as reliable as its list.** If you add a domain to `FIREWALL_ALLOW`, anything that can be uploaded to that site is a way out. And if it's behind a CDN that serves other websites by the Host header (like Fastly), the proxy doesn't decrypt it: add only what you need.
+- **Programs that don't use the proxy** have no internet access. Almost all of them use it on their own (`HTTPS_PROXY`); those that don't fail with a connection error.
+- **MCP servers turned off.** For safety, Claude Code doesn't load any MCP server, not even the ones you add. OpenCode doesn't use the ones a repository brings either.
+- **LM Studio, llama.cpp and Open WebUI** don't go through the projects' firewall.
 
-- **Instrucciones ocultas (*prompt injection*).** Un README, un issue o una web pueden contener instrucciones para el agente. El cortafuegos limita adónde puede enviar datos, pero GitHub (los repositorios de tu token), npm (que acepta paquetes de cualquiera) y la API de Anthropic están permitidos. Por eso el modo autónomo es solo para proyectos de confianza.
-- **Dentro de un mismo proyecto,** un agente engañado puede dejar en su configuración algo que se ejecute la próxima vez que abras ese proyecto, o cambiar sus credenciales. Si sospechas de un proyecto, bórralo, créalo de nuevo desde GitHub y no copies nada de él.
-- **El token de GitHub** (opción 6) lo pueden usar los agentes del proyecto: un agente engañado podría subir datos o borrar ramas en los repositorios que le diste. Elige solo los del proyecto y protege la rama principal en GitHub (*Settings → Rules → Rulesets*: bloquear *force push* y borrado).
-- **VS Code conectado a un proyecto** es un puente hacia Windows: no lo uses con repositorios de los que no te fíes ni a la vez que el modo autónomo.
-- **El proxy es tan fiable como la lista.** Si añades un dominio a `FIREWALL_ALLOW`, todo lo que se pueda subir a ese sitio es una vía de salida. Y si está detrás de una CDN que sirve otras webs con la cabecera Host (como Fastly), el proxy no lo descifra: añade solo lo que necesites.
-- **Programas que no usan proxy** no tienen salida a internet. Casi todos lo usan solos (`HTTPS_PROXY`); los que no, fallan con un error de conexión.
-- **Servidores MCP desactivados.** Por seguridad, Claude Code no carga ningún servidor MCP, tampoco los que añadas tú. OpenCode tampoco usa los que traiga un repositorio.
-- **LM Studio, llama.cpp y Open WebUI** no pasan por el cortafuegos de los proyectos.
+While the environment is connected to the internet, better not handle sensitive data: the firewall limits where the agent connects, but it doesn't stop it from sending data to the allowed destinations.
 
-Con el entorno conectado a internet, mejor no tratar datos sensibles: el cortafuegos limita adónde se conecta el agente, pero no impide que envíe datos a los destinos permitidos.
-
-Para permitir otros destinos (por ejemplo, la API de un proyecto o un CDN de paquetes):
+To allow other destinations (for example, a project's API or a package CDN):
 
 ```
-FIREWALL_ALLOW=api.miproyecto.com,cdn.jsdelivr.net
+FIREWALL_ALLOW=api.myproject.com,cdn.jsdelivr.net
 ```
 
-Y aplicar abriendo el proyecto de nuevo desde `iniciar.cmd`. Si llama.cpp se recrea y cambia de dirección, apagar y volver a abrir el proyecto.
+And apply it by opening the project again from `iniciar.cmd`. If llama.cpp is recreated and its address changes, shut the project down and open it again.
 
-## 11. Actualizar, parar y borrar
+## 11. Update, stop and delete
 
-| Tarea | Cómo |
+| Task | How |
 |---|---|
-| Actualizar Claude Code, OpenCode y las herramientas | `iniciar.cmd` → **A** |
-| Actualizar este repositorio | `git pull` (o descargar el ZIP de nuevo) y ejecutar `iniciar.cmd`. Los proyectos se conservan |
-| Apagar todos los proyectos | `iniciar.cmd` → **P** |
-| Borrar un proyecto | `iniciar.cmd` → **B** |
-| Actualizar llama.cpp | `docker compose --profile llamacpp pull` |
+| Update Claude Code, OpenCode and the tools | `iniciar.cmd` → **A** |
+| Update this repository | `git pull` (or download the ZIP again) and run `iniciar.cmd`. The projects are kept |
+| Shut down all projects | `iniciar.cmd` → **P** |
+| Delete a project | `iniciar.cmd` → **B** |
+| Update llama.cpp | `docker compose --profile llamacpp pull` |
 
-Los archivos de cada proyecto viven en un volumen de Docker (`bulkhead-<proyecto>_workspace`): súbelos a GitHub para tenerlos a salvo.
+Each project's files live in a Docker volume (`bulkhead-<project>_workspace`): push them to GitHub to keep them safe.
 
-**Borrar todo** (proyectos, sesiones y modelos), desde la carpeta del repositorio:
+**Delete everything** (projects, sessions and models), from the repository folder:
 
 ```powershell
 docker ps -aq --filter "name=bulkhead" | ForEach-Object { docker rm -f $_ }
 docker volume ls -q --filter "name=bulkhead" | ForEach-Object { docker volume rm $_ }
 ```
 
-No uses `docker compose down -v` con el proyecto de un nombre (`-p bulkhead-…`): intentaría borrar también los modelos compartidos. Para borrar un proyecto, usa la opción **B**.
+Don't use `docker compose down -v` with a named project (`-p bulkhead-…`): it would also try to delete the shared models. To delete a project, use option **B**.
 
-## 12. Solución de problemas
+## 12. Troubleshooting
 
-| Problema | Solución |
+| Problem | Fix |
 |---|---|
-| `failed to connect to the docker API` | Abrir Docker Desktop y esperar a *Engine running* |
-| Docker en modo contenedores de Windows | Icono de Docker → *Switch to Linux containers* |
-| `running scripts is disabled` | Usar `iniciar.cmd` en lugar de `iniciar.ps1` |
-| `port is already allocated` | Otro programa usa el puerto que muestra el error: cerrarlo |
-| Sin servidor de modelos (LM Studio) | *Developer → Start Server*. Si persiste, activar *Serve on Local Network* |
-| Sin servidor de modelos (llama.cpp) | El modelo aún se está descargando: `docker compose logs -f llamacpp` |
-| `could not select device driver "nvidia"` | Actualizar el driver NVIDIA y Docker Desktop |
-| Memoria insuficiente en llama.cpp | Bajar `LLAMACPP_CTX`, activar `LLAMACPP_CPU_MOE` o usar una cuantización menor |
-| El modelo local no usa herramientas o se corta | Subir el contexto a 32768 o usar un modelo mayor |
-| No se puede clonar un repositorio | Si es privado: opción 6 (Conectar GitHub). Si no es de GitHub: añadir su dominio a `FIREWALL_ALLOW` |
-| Un proyecto no enciende (`unhealthy`) | Ver el motivo con `docker logs bulkhead-<proyecto>-workspace-1` |
-| Una herramienta no conecta (`403`, `Connection refused`, `EHOSTUNREACH`, `Could not resolve host`) | El cortafuegos bloquea ese destino: buscar `DENIED` en `/var/log/bulkhead-proxy/conexiones.log` y añadir el dominio a `FIREWALL_ALLOW`. Si el programa no usa `HTTPS_PROXY`, no puede salir |
-| `pip` o Python dan un error de certificado | Usar el Python del sistema o un `venv` normal: confían en el certificado del proxy mediante `PIP_CERT` y `SSL_CERT_FILE`. Un programa con su propia lista de certificados necesita que se la indiques |
-| VS Code no termina de abrir el proyecto | Añadir a `FIREWALL_ALLOW` el dominio que aparezca en el registro de *Dev Containers* |
-| VS Code se abre como `root` o fuera de `/workspace` | Cerrar VS Code y volver a usar la opción 5 del menú |
-| La construcción de la imagen falla | Comprobar la conexión y ejecutar `docker compose build --no-cache workspace` |
-| `environment variable "ANTHROPIC_API_KEY" required by secret … is not set` | Falta la línea `ANTHROPIC_API_KEY=` en `.env` (puede ir vacía). `iniciar.cmd` la añade sola; al usar `docker compose` o VS Code directamente, ejecutar antes `iniciar.cmd` una vez |
-| Aviso `mode is not supported outside Swarm mode` | Es inofensivo: Compose sí aplica ese permiso al secreto de la clave, y el contenedor lo comprueba al arrancar |
-| `con el cortafuegos activo no se resuelven nombres` | Actualizar Docker Desktop (hace falta Docker Engine 26 o posterior). Si en *Settings → Docker Engine* hay un `"dns"` propio, probar a quitarlo |
-| Un repositorio trae configuración de OpenCode (`opencode.json`, `.opencode/`) y no se aplica | Es a propósito: podría saltarse los permisos o ejecutar código al abrirse. Sus `AGENTS.md` y `CLAUDE.md` sí se leen |
+| `failed to connect to the docker API` | Open Docker Desktop and wait for *Engine running* |
+| Docker in Windows containers mode | Docker icon → *Switch to Linux containers* |
+| `running scripts is disabled` | Use `iniciar.cmd` instead of `iniciar.ps1` |
+| `port is already allocated` | Another program is using the port the error shows: close it |
+| No model server (LM Studio) | *Developer → Start Server*. If it persists, turn on *Serve on Local Network* |
+| No model server (llama.cpp) | The model is still downloading: `docker compose logs -f llamacpp` |
+| `could not select device driver "nvidia"` | Update the NVIDIA driver and Docker Desktop |
+| Not enough memory in llama.cpp | Lower `LLAMACPP_CTX`, turn on `LLAMACPP_CPU_MOE` or use a smaller quantization |
+| The local model doesn't use tools or gets cut off | Raise the context to 32768 or use a bigger model |
+| A repository can't be cloned | If it's private: option 6 (*Conectar GitHub*). If it isn't on GitHub: add its domain to `FIREWALL_ALLOW` |
+| A project won't start (`unhealthy`) | See why with `docker logs bulkhead-<project>-workspace-1` |
+| A tool can't connect (`403`, `Connection refused`, `EHOSTUNREACH`, `Could not resolve host`) | The firewall is blocking that destination: look for `DENIED` in `/var/log/bulkhead-proxy/conexiones.log` and add the domain to `FIREWALL_ALLOW`. If the program doesn't use `HTTPS_PROXY`, it can't get out |
+| `pip` or Python give a certificate error | Use the system Python or a normal `venv`: they trust the proxy's certificate through `PIP_CERT` and `SSL_CERT_FILE`. A program with its own list of certificates needs you to point it there |
+| VS Code never finishes opening the project | Add to `FIREWALL_ALLOW` the domain that shows up in the *Dev Containers* log |
+| VS Code opens as `root` or outside `/workspace` | Close VS Code and use option 5 of the menu again |
+| Building the image fails | Check the connection and run `docker compose build --no-cache workspace` |
+| `environment variable "ANTHROPIC_API_KEY" required by secret … is not set` | The `ANTHROPIC_API_KEY=` line is missing from `.env` (it can be empty). `iniciar.cmd` adds it by itself; when using `docker compose` or VS Code directly, run `iniciar.cmd` once first |
+| Warning `mode is not supported outside Swarm mode` | Harmless: Compose does apply that permission to the key's secret, and the container checks it at startup |
+| `con el cortafuegos activo no se resuelven nombres` (names don't resolve with the firewall on) | Update Docker Desktop (Docker Engine 26 or later is needed). If *Settings → Docker Engine* has its own `"dns"`, try removing it |
+| A repository brings OpenCode settings (`opencode.json`, `.opencode/`) and they aren't applied | On purpose: they could get around the permissions or run code when opened. Its `AGENTS.md` and `CLAUDE.md` are read |

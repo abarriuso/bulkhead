@@ -572,7 +572,7 @@ if ($LASTEXITCODE -ne 0) {
     if ($LASTEXITCODE -ne 0) {
         Fallo "Docker Desktop no responde"
         Nota "Ábrelo desde el menú Inicio y espera a que abajo a la izquierda ponga 'Engine running'."
-        Nota "Si muestra un error de virtualización o de WSL, consulta INSTALACION.md (Problemas de instalación)."
+        Nota "Si muestra un error de virtualización o de WSL, consulta INSTALL.md (Installation problems)."
         exit 1
     }
 }
@@ -645,7 +645,7 @@ if (-not (PrepararImagen)) {
 }
 if ($LlamaCpp) {
     if (-not (Esperar "Arrancando llama.cpp" (@("compose") + $Profiles + @("up", "-d", "llamacpp")))) {
-        Nota "Comprueba que Docker ve la tarjeta gráfica NVIDIA (ver MANUAL.md, Modelo local)."
+        Nota "Comprueba que Docker ve la tarjeta gráfica NVIDIA (ver MANUAL.md, Local model)."
         exit 1
     }
     Nota "llama.cpp descarga el modelo en el primer arranque: docker compose logs -f llamacpp"
