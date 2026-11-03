@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 698" width="960" height="698" role="img" aria-labelledby="t d">
-<title id="t">Plano 1: versión escritorio</title>
-<desc id="d">En un PC con Windows, Docker Desktop ejecuta un contenedor por proyecto con Claude Code y OpenCode. Cada uno sale a internet solo por un proxy que filtra por dominio y deja pasar a Anthropic, npm, PyPI, GitHub y VS Code, y no ve el disco de Windows ni los demás proyectos. El modelo local lo sirve LM Studio en Windows o un contenedor llama.cpp; Open WebUI ofrece un chat con ese modelo. Ninguno de los tres pasa por el cortafuegos.</desc>
+<title id="t">Plan 1: desktop version</title>
+<desc id="d">On a Windows PC, Docker Desktop runs one container per project with Claude Code and OpenCode. Each one reaches the internet only through a proxy that filters by domain and lets through Anthropic, npm, PyPI, GitHub and VS Code, and it can't see the Windows drive or the other projects. The local model is served by LM Studio on Windows or by a llama.cpp container; Open WebUI offers a chat with that model. None of the three goes through the firewall.</desc>
 <style>
 svg{--paper:#f2f0eb;--ink:#0a0a0a;--mute:#55534e;--box:#ffffff;--r:#e8341c}
 @media (prefers-color-scheme:dark){svg{--paper:#0a0a0a;--ink:#f2f0eb;--mute:#aeaba3;--box:#171716;--r:#ff4a2e}}
@@ -27,35 +27,35 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 <!-- Cabecera -->
 <rect class="ink" x="24" y="24" width="44" height="44"/>
 <text class="D h2 inv c" x="46" y="54">01</text>
-<text class="D h1" x="84" y="60">ESCRITORIO</text>
+<text class="D h1" x="84" y="60">DESKTOP</text>
 <rect class="ink" x="776" y="28" width="160" height="36"/>
-<text class="k inv c" x="856" y="51" style="font-size:13px">DISPONIBLE</text>
+<text class="k inv c" x="856" y="51" style="font-size:13px">AVAILABLE</text>
 <rect class="ink" x="24" y="84" width="912" height="4"/>
 
 <!-- PC con Windows -->
 <rect class="zone" x="24" y="110" width="616" height="452"/>
 <rect class="ink" x="24" y="110" width="134" height="24"/>
-<text class="k inv" x="34" y="126">PC CON WINDOWS</text>
+<text class="k inv" x="34" y="126">WINDOWS PC</text>
 
 <rect class="ink" x="46" y="166" width="184" height="52"/>
 <rect class="box" x="40" y="160" width="184" height="52"/>
 <text class="D h3" x="52" y="182">INICIAR.CMD</text>
-<text class="s" x="52" y="202">proyectos y menú</text>
+<text class="s" x="52" y="202">projects and menu</text>
 
 <rect class="ink" x="46" y="234" width="184" height="52"/>
 <rect class="box" x="40" y="228" width="184" height="52"/>
 <text class="D h3" x="52" y="250">VS CODE</text>
-<text class="s" x="52" y="270">opcional</text>
+<text class="s" x="52" y="270">optional</text>
 
 <rect class="ink" x="46" y="446" width="184" height="104"/>
 <rect class="box" x="40" y="440" width="184" height="104"/>
 <rect class="haz" x="41.5" y="441.5" width="181" height="16"/>
 <line class="f" x1="40" y1="458" x2="224" y2="458"/>
 <rect class="blk" x="48" y="443" width="110" height="13"/>
-<text class="k9 yt c" x="103" y="453">SIN CORTAFUEGOS</text>
+<text class="k9 yt c" x="103" y="453">NO FIREWALL</text>
 <text class="D h3" x="52" y="484">LM STUDIO</text>
-<text class="s" x="52" y="504">opcional · GPU · :1234</text>
-<text x="52" y="526">en Windows</text>
+<text class="s" x="52" y="504">optional · GPU · :1234</text>
+<text x="52" y="526">on Windows</text>
 
 <!-- Docker Desktop -->
 <rect class="zd" x="240" y="140" width="384" height="408"/>
@@ -65,17 +65,17 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 <rect class="ink" x="262" y="182" width="352" height="236"/>
 <rect class="lim" x="256" y="176" width="352" height="236"/>
 <rect class="red" x="256" y="176" width="190" height="22"/>
-<text class="k w" x="266" y="191">LÍMITE DEL CONTENEDOR</text>
-<text class="D h2" x="268" y="226">PROYECTO</text>
-<text class="s e" x="596" y="226">uno por proyecto</text>
+<text class="k w" x="266" y="191">CONTAINER BOUNDARY</text>
+<text class="D h2" x="268" y="226">PROJECT</text>
+<text class="s e" x="596" y="226">one per project</text>
 <text x="268" y="248">Claude Code · OpenCode</text>
-<text class="s" x="268" y="266">git · gh · Node · Python · menú ia</text>
-<text x="268" y="292">■ usuario sin privilegios</text>
-<text x="268" y="310">■ no ve Windows ni otros proyectos</text>
-<text x="268" y="328">■ sus sesiones y sus puertos</text>
-<text x="268" y="346">■ límites de CPU, memoria y procesos</text>
-<text class="D h3 r" x="268" y="378">PROXY DE SALIDA</text>
-<text class="s" x="268" y="398">por dominio · sin DNS · si falla, no arranca</text>
+<text class="s" x="268" y="266">git · gh · Node · Python · ia menu</text>
+<text x="268" y="292">■ unprivileged user</text>
+<text x="268" y="310">■ can't see Windows or other projects</text>
+<text x="268" y="328">■ its own sessions and ports</text>
+<text x="268" y="346">■ CPU, memory and process limits</text>
+<text class="D h3 r" x="268" y="378">OUTBOUND PROXY</text>
+<text class="s" x="268" y="398">by domain · no DNS · won't start if it fails</text>
 <rect class="red" x="601" y="216" width="14" height="176"/>
 
 <rect class="ink" x="262" y="446" width="160" height="92"/>
@@ -83,9 +83,9 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 <rect class="haz" x="257.5" y="441.5" width="157" height="16"/>
 <line class="f" x1="256" y1="458" x2="416" y2="458"/>
 <rect class="blk" x="264" y="443" width="110" height="13"/>
-<text class="k9 yt c" x="319" y="453">SIN CORTAFUEGOS</text>
+<text class="k9 yt c" x="319" y="453">NO FIREWALL</text>
 <text class="D h3" x="268" y="484">LLAMA.CPP</text>
-<text class="s" x="268" y="504">opcional · GPU</text>
+<text class="s" x="268" y="504">optional · GPU</text>
 <text class="s" x="268" y="522">:8090</text>
 
 <rect class="ink" x="454" y="446" width="154" height="92"/>
@@ -93,9 +93,9 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 <rect class="haz" x="449.5" y="441.5" width="151" height="16"/>
 <line class="f" x1="448" y1="458" x2="602" y2="458"/>
 <rect class="blk" x="456" y="443" width="110" height="13"/>
-<text class="k9 yt c" x="511" y="453">SIN CORTAFUEGOS</text>
+<text class="k9 yt c" x="511" y="453">NO FIREWALL</text>
 <text class="D h3" x="460" y="484">OPEN WEBUI</text>
-<text class="s" x="460" y="504">opcional · chat</text>
+<text class="s" x="460" y="504">optional · chat</text>
 <text class="s" x="460" y="522">:3100</text>
 
 <!-- Internet -->
@@ -105,7 +105,7 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 
 <rect class="ink" x="682" y="156" width="248" height="180"/>
 <rect class="box" x="676" y="150" width="248" height="180"/>
-<text class="D h3" x="688" y="176">PERMITIDO</text>
+<text class="D h3" x="688" y="176">ALLOWED</text>
 <text x="688" y="200">Anthropic · Claude</text>
 <text x="688" y="220">npm · PyPI</text>
 <text x="688" y="240">GitHub</text>
@@ -114,13 +114,13 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 
 <rect class="ink" x="682" y="352" width="248" height="64"/>
 <rect class="rbox" x="676" y="346" width="248" height="64"/>
-<text class="D h3 w" x="688" y="372">BLOQUEADO</text>
-<text class="w" x="688" y="394">todo lo demás</text>
+<text class="D h3 w" x="688" y="372">BLOCKED</text>
+<text class="w" x="688" y="394">everything else</text>
 
 <rect class="ink" x="682" y="446" width="248" height="92"/>
 <rect class="box" x="676" y="440" width="248" height="92"/>
 <text class="D h3" x="688" y="466">HUGGING FACE</text>
-<text class="s" x="688" y="486">descarga de modelos</text>
+<text class="s" x="688" y="486">model downloads</text>
 
 <!-- Flujos -->
 <path class="f" d="M224,186 H250" marker-end="url(#p)"/>
@@ -141,16 +141,16 @@ text{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberatio
 <!-- Leyenda -->
 <rect class="ink" x="24" y="574" width="912" height="4"/>
 <rect class="ink" x="24" y="588" width="20" height="20"/><text class="tagt" x="34" y="602">1</text>
-<text x="52" y="603">salida permitida: Anthropic, npm, PyPI, GitHub…</text>
+<text x="52" y="603">allowed out: Anthropic, npm, PyPI, GitHub…</text>
 <rect class="ink" x="480" y="588" width="20" height="20"/><text class="tagt" x="490" y="602">2</text>
-<text x="508" y="603">cualquier otro destino: bloqueado</text>
+<text x="508" y="603">any other destination: blocked</text>
 <rect class="ink" x="24" y="614" width="20" height="20"/><text class="tagt" x="34" y="628">3</text>
-<text x="52" y="629">agente → modelo local, sin salir del PC</text>
+<text x="52" y="629">agent → local model, never leaves the PC</text>
 <rect class="ink" x="480" y="614" width="20" height="20"/><text class="tagt" x="490" y="628">4</text>
-<text x="508" y="629">llama.cpp → Hugging Face, sin cortafuegos</text>
+<text x="508" y="629">llama.cpp → Hugging Face, no firewall</text>
 <rect class="haz sw" x="24" y="642" width="20" height="16"/>
-<text x="52" y="655">fuera del cortafuegos de los proyectos</text>
+<text x="52" y="655">outside the projects' firewall</text>
 <rect class="red sw" x="480" y="642" width="20" height="16"/>
-<text x="508" y="655">cortafuegos y bloqueos</text>
-<text class="s" x="24" y="684">Open WebUI habla con LM Studio o con llama.cpp. Va en su propia red: no alcanza los proyectos.</text>
+<text x="508" y="655">firewall and blocks</text>
+<text class="s" x="24" y="684">Open WebUI talks to LM Studio or llama.cpp. It has its own network: it can't reach the projects.</text>
 </svg>
